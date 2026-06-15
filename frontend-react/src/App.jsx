@@ -14,7 +14,7 @@ function App() {
   return (
     <div className="main-content">
       <header>
-        <h1>Rob's Exercise App</h1>
+        <h1>Exercise Tracker</h1>
         <p>For OSU Beavers that are Buff, Buff curious, or Buff positive</p>
       </header>
       
