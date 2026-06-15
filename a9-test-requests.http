@@ -1,0 +1,188 @@
+### READ ME !!  
+### Replace the value of the variable DEADLIFT__ID below
+### with the value of "_id" in the response to request 1, 
+@DEADLIFT_ID = 6a26ebb0d45f5b31ea621ce7
+
+
+### DON'T change this value:
+@NON_EXISTENT_EXERCISE_ID = 369b336b8c8867f2cc165159
+
+
+### 1: CREATE an exercise
+### Status Code: 201
+### Body: JSON object for the newly created exercise. Must be an object, not an array
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": 12,
+    "weight": 30,
+    "unit": "kgs",
+    "date": "2025-08-27"
+}
+
+### Did you remember to copy the ID value 
+### to the top variable on line 4?
+
+
+
+### 2: CREATE another exercise
+### Status Code: 201
+### Body: JSON object for the newly created exercise
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Squat",
+    "reps": 13,
+    "weight": 31,
+    "unit": "lbs",
+    "date": "2025-08-27"
+}
+
+### 3: CREATE another exercise
+### Status Code: 201
+### Body: JSON object for the newly created exercise
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Walk",
+    "reps": 2,
+    "weight": 32,
+    "unit": "kgs",
+    "date": "2025-08-27"
+}
+
+### 4: CREATE an exercise
+### Status Code: 201
+### Body: JSON object for the newly created exercise
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Lunges",
+    "reps": 15,
+    "weight": 33,
+    "unit": "lbs",
+    "date": "2025-08-27"
+}
+
+
+### 5: INVALID request for exercise creation (unit is missing)
+### Status Code: 400
+### Body: {"Error": "Invalid request"}
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": 12,
+    "weight": 25,
+    "date": "2025-08-27"
+}
+
+
+### 6: INVALID request for exercise creation (not a number)
+### Status Code: 400
+### Body: {"Error": "Invalid request"}
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": "not a number",
+    "weight": 1,
+    "unit": "kgs",
+    "date": "2025-08-27"
+}
+
+
+### 7: INVALID request for exercise creation (date is incomplete)
+### Status Code: 400
+### Body: {"Error": "Invalid request"}
+POST http://localhost:3000/exercises HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": 18,
+    "weight": 1,
+    "unit": "kgs",
+    "date": "25-08-27"
+}
+
+### 8: RETRIEVE all 4 documents
+### Status Code: 200 
+### Body: A JSON array with the 4 objects, one for each exercise we created
+GET http://localhost:3000/exercises HTTP/1.1
+
+
+
+### 9: RETRIEVE Deadlift from first post's ID
+### Status Code: 200
+### Body: JSON object with all properties. reps 12, weight 30, unit kgs
+GET  http://localhost:3000/exercises/{{DEADLIFT_ID}} HTTP/1.1
+
+
+
+### 10: RETRIEVE for non-existent ID
+### Status Code: 404
+### Body: {"Error": "Not found"}
+GET  http://localhost:3000/exercises/{{NON_EXISTENT_EXERCISE_ID}} HTTP/1.1
+
+
+
+### 11: UPDATE the first Deadlift post: 
+###     reps to 20 
+###     unit to lbs 
+###     weight remains 30
+###     date remains 2025-08-27
+### Status Code: 200
+### Body: JSON object with all properties. 
+PUT http://localhost:3000/exercises/{{DEADLIFT_ID}} HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": 20,
+    "weight": 30,
+    "unit": "lbs",
+    "date": "2025-08-27"
+}
+
+### 12: VERIFY the previous update
+### Status Code: 200
+### Body: JSON object with all properties (shown in #11)
+GET http://localhost:3000/exercises/{{DEADLIFT_ID}} HTTP/1.1
+
+
+### 13: INVALID request for exercise update (not a number)
+### Status Code: 400
+### Body: {"Error": "Invalid request"}
+PUT http://localhost:3000/exercises/{{DEADLIFT_ID}} HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Deadlift",
+    "reps": "not a number",
+    "weight": 1,
+    "unit": "kgs",
+    "date": "2025-08-27"
+}
+
+
+### 14 and 15: DELETE the Deadlift post
+### Status Code: 204 status code
+### Body: empty  then request again to see "Not Found"
+DELETE http://localhost:3000/exercises/{{DEADLIFT_ID}} HTTP/1.1
+
+
+
+### 16: VERIFY exercise was deleted (3 remain)
+### Status Code: 200
+### Body: Array must contain 3 exercises and must not contain the Deadlift document
+GET http://localhost:3000/exercises HTTP/1.1
+
+
