@@ -14,8 +14,8 @@ function App() {
   return (
     <div className="main-content">
       <header>
-        <h1>Robs Exercise App</h1>
-        <p>For Beavers that are Buff, Buff curious, or Buff positive</p>
+        <h1>Rob's Exercise App</h1>
+        <p>For OSU Beavers that are Buff, Buff curious, or Buff positive</p>
       </header>
       
         <Router>
