@@ -3,24 +3,54 @@ import { useNavigate } from 'react-router-dom';
 
 const EditExercisePage = ({ exercise }) => {
 
-    const [name, setName] = useState(exercise.name);
-    const [reps, setReps] = useState(exercise.reps);
-    const [weight, setWeight] = useState(exercise.weight);
-    const [unit, setUnit] = useState(exercise.unit);
-    const [date, setDate] = useState(exercise.date?.split('T')[0]);
+    const [name, setName] = useState(exercise?.name ?? '');
+    const [reps, setReps] = useState(exercise?.reps ?? '');
+    const [weight, setWeight] = useState(exercise?.weight ?? '');
+    const [unit, setUnit] = useState(exercise?.unit ?? 'kgs');
+    const [date, setDate] = useState(exercise?.date?.split('T')[0] ?? '');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        setName(exercise.name);
-        setReps(exercise.reps);
-        setWeight(exercise.weight);
-        setUnit(exercise.unit);
-        setDate(exercise.date?.split('T')[0]);
+        setName(exercise?.name ?? '');
+        setReps(exercise?.reps ?? '');
+        setWeight(exercise?.weight ?? '');
+        setUnit(exercise?.unit ?? 'kgs');
+        setDate(exercise?.date?.split('T')[0] ?? '');
+        setErrorMessage('');
     }, [exercise]);
 
     const navigate = useNavigate();
     
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setErrorMessage('');
+
+        if (!name.trim()) {
+            setErrorMessage('Please enter an exercise name.');
+            return;
+        }
+
+        if (!Number.isFinite(reps) || reps <= 0) {
+            setErrorMessage('Please enter a positive number of reps.');
+            return;
+        }
+
+        if (!Number.isFinite(weight) || weight < 0) {
+            setErrorMessage('Please enter a non-negative weight.');
+            return;
+        }
+
+        if (!unit) {
+            setErrorMessage('Please select a unit.');
+            return;
+        }
+
+        if (!date) {
+            setErrorMessage('Please choose a date.');
+            return;
+        }
+
         const updatedExercise = {
             name,
             reps,
@@ -29,22 +59,28 @@ const EditExercisePage = ({ exercise }) => {
             date,
         };
 
+        setIsSubmitting(true);
+
         try {
             const response = await fetch(`/exercises/${exercise._id}`, {
                 method: 'PUT',
                 headers: { 'Content-type': 'application/json' },
                 body: JSON.stringify(updatedExercise),
             });
+            const data = await response.json().catch(() => null);
 
-            if (response.status===200){
+            if (response.ok) {
                 alert('Update Successful!');
                 navigate('/');
             } else {
-                alert(`Update Failed, Response: ${response.status}`);
+                setErrorMessage(data?.Error || `Update Failed, Response: ${response.status}`);
             }
 
         } catch (e) {
             console.error(e);
+            setErrorMessage('Unable to update exercise right now.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -103,8 +139,11 @@ const EditExercisePage = ({ exercise }) => {
             </p>
              <p>
                 <label htmlFor="save">Click to  </label>
-                <button id="save" type="submit">SAVE</button>
+                <button id="save" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'SAVE'}
+                </button>
             </p>
+            {errorMessage && <p role="alert">{errorMessage}</p>}
             </fieldset>
             </form>
         </div>

@@ -66,12 +66,12 @@ app.get('/exercises', asyncHandler(async (req, res) => {
 app.get('/exercises/:id', asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
     const result = await exercises.retrieveExerciseById(exerciseId);
-    
-    if (result.length == 0){
+
+    if (!result) {
         return res.status(404).json(NOT_FOUND);
-    } else {
-        res.status(200).json(result.shift());
     }
+
+    return res.status(200).json(result);
 }));
 
 app.put('/exercises/:id', asyncHandler(async (req, res) => {
@@ -90,7 +90,7 @@ app.put('/exercises/:id', asyncHandler(async (req, res) => {
     }
 
     const updatedExercise = await exercises.retrieveExerciseById(exerciseId);
-    return res.status(200).json(updatedExercise.shift());
+    return res.status(200).json(updatedExercise);
 }));
 
 app.delete('/exercises/:id', asyncHandler(async (req, res) => {

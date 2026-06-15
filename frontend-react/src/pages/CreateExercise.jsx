@@ -14,13 +14,41 @@ export const CreateExercisePage = () => {
     const [name, setName] = useState('');
     const [reps, setReps] = useState('');
     const [weight, setWeight] = useState('');
-    const [unit, setUnit] = useState('');
+    const [unit, setUnit] = useState('kgs');
     const [date, setDate] = useState(todayFormatted?.split('T')[0]); //fixme TZ aware?
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setErrorMessage('');
+
+        if (!name.trim()) {
+            setErrorMessage('Please enter an exercise name.');
+            return;
+        }
+
+        if (!Number.isFinite(reps) || reps <= 0) {
+            setErrorMessage('Please enter a positive number of reps.');
+            return;
+        }
+
+        if (!Number.isFinite(weight) || weight < 0) {
+            setErrorMessage('Please enter a non-negative weight.');
+            return;
+        }
+
+        if (!unit) {
+            setErrorMessage('Please select a unit.');
+            return;
+        }
+
+        if (!date) {
+            setErrorMessage('Please choose a date.');
+            return;
+        }
 
         const newExercise = {
             name,
@@ -29,7 +57,8 @@ export const CreateExercisePage = () => {
             unit,
             date,
         };
-        //console.log(`New exercise: ${newExercise}`);
+
+        setIsSubmitting(true);
 
         try {
             const response = await fetch("/exercises", {
@@ -37,17 +66,19 @@ export const CreateExercisePage = () => {
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newExercise),
             });
-         
-            if (response.status===201){
+            const data = await response.json().catch(() => null);
+
+            if (response.ok) {
                 alert('Create Successful!');
                 navigate('/');
             } else {
-                alert(`Create Failed, Response: ${response.status}`);
+                setErrorMessage(data?.Error || `Create Failed, Response: ${response.status}`);
             }
-  
-            
         } catch (e) {
             console.error(e);
+            setErrorMessage('Unable to create exercise right now.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -107,8 +138,11 @@ export const CreateExercisePage = () => {
             </p>
              <p>
                 <label htmlFor="save">Click to  </label>
-                <button id="save" type="submit">SAVE</button>
+                <button id="save" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'SAVE'}
+                </button>
             </p>
+            {errorMessage && <p role="alert">{errorMessage}</p>}
             </fieldset>
             </form>
         </div>

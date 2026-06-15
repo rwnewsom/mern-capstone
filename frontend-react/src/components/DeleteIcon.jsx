@@ -2,6 +2,12 @@ import { TiDelete } from 'react-icons/ti';
 
 function DeleteIcon({ exercise, setExercises }) {
     const deleteExercise = async () => {
+        const confirmed = window.confirm(`Delete "${exercise.name}"?`);
+
+        if (!confirmed) {
+            return;
+        }
+
         const response = await fetch(`/exercises/${exercise._id}`, {
             method: 'DELETE'
         });

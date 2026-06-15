@@ -10,6 +10,7 @@ node_modules/
 /dist/
 /build/
 /.vite/
+frontend-react/dist/
 
 # Logs
 npm-debug.log*

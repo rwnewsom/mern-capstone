@@ -1,165 +1,211 @@
-/* ID SELECTORS id="..." */
-
-/* My kid got off the waitlist at VA Tech, so using that scheme
-Found these via a google search - returned overview
-*/
-
 :root {
-  --vt-maroon: #630031;  /* Chicago Maroon */
-  --vt-orange: #C64600;  /* Burnt Orange */
-  --vt-white: #FFFFFF;   /* Yardline White */
-  --vt-stone: #C5C7C9;   /* Hokie Stone */
-  --vt-impact-orange: #CA4F00;
-  --vt-pink: #CE0058;        /* Boundless Pink */
-  --vt-yellow: #F7EA48;      /* Triumphant Yellow */
-  --vt-teal: #508590;        /* Sustainable Teal */
-  --vt-turquoise: #2CD5C4;   /* Vibrant Turquoise */
-  --vt-grey: #D7D2CB;        /* Land Grant Grey */
-  --vt-smoke: #E5E1E6;       /* Skipper Smoke */
+  --vt-maroon: #630031;
+  --vt-orange: #c64600;
+  --vt-white: #ffffff;
+  --vt-stone: #c5c7c9;
+  --vt-impact-orange: #ca4f00;
+  --vt-yellow: #f7ea48;
+  --vt-teal: #508590;
+  --vt-smoke: #e5e1e6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, var(--vt-maroon) 0%, #7a003c 100%);
+  color: var(--vt-smoke);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  background-color: var(--vt-maroon);
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-
-/* CLASS SELECTORS class="..." */
-
-.app {
-  background-color: var(--vt-maroon);
-  color: white;
-}
-
-
-.collection-container {
-  border: 6px solid var(--vt-orange);
-  padding: 32px;
-}
-
-.collection-item {
-  border: 2px solid var(--vt-stone);
-  border-radius: 8px;
-  width: 600px;
-  margin-top: 16px;
-}
-
-.nav ul {
-  display: flex;
-  list-style: none;
-  justify-content: space-between;
-}
-
-a {
-  font-weight: 500;
-  color: var(--vt-white);
-  text-decoration: inherit;
-  margin: 4px;
-}
-a:hover {
-  color: solid var(--vt-orange);
+  min-height: 100vh;
 }
 
 .main-content {
-  box-sizing: border-box;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
   display: flex;
-  gap: 20px;
   flex-direction: column;
-  align-items: center;
-  padding-top: 30px;
-  padding-bottom: 30px;
-  line-height: 30px;
+  gap: 1.25rem;
 }
 
-
-/* elements in Rubric order */
-
-body {
-  background-color: var(--vt-maroon);
-  color: var(--vt-smoke);
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  margin: 0 auto;
-  padding: 2.5 rem;
-  display: flex;
-  flex-direction: column;
+header,
+footer,
+nav,
+form,
+table {
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
 header {
-  background-color: var(--vt-orange);
-  color: var(--vt-smoke);
-  margin: 1 rem 2rem;
-  padding: 20px 10px;
+  background: linear-gradient(135deg, var(--vt-orange), var(--vt-impact-orange));
+  color: var(--vt-white);
+  padding: 1.5rem 2rem;
+  text-align: center;
 }
 
-main {
-  background-color: var(--vt-maroon);
-  color: var(--vt-smoke);
-  margin: 0 auto;
-  padding: 2 rem;
+header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
 }
 
-footer{
-  background-color: var(--vt-impact-orange);
-  color: var(--vt-smoke);
-  margin: 0 auto;
-  padding: 20px 10px;
+header p {
+  margin: 0;
+  opacity: 0.95;
 }
 
 nav {
-background-color: var(--vt-teal);
-border: 1px var(--vt-grey);
-color: var(--vt-yellow);
-margin: 2rem auto;
-padding: 20px 10px;
-text-decoration:none;
-width: auto;
+  background: rgba(80, 133, 144, 0.95);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
-a {
-  background-color: var(--vt-teal);
-  border: 1px var(--vt-grey);
-  color: var(--vt-yellow);
-  margin: 0 auto;
-  padding: 20px 10px;
-  text-decoration:none;
+nav a {
+  color: var(--vt-white);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  transition: all 0.2s ease;
 }
 
-a:hover {
-  color: solid var(--vt-orange);
-  border: 1px var(--vt-grey);
+nav a:hover {
+  background: var(--vt-yellow);
   color: var(--vt-maroon);
-  margin: 0 auto;
-  padding: .5 rem;
-  text-decoration:none;
+  transform: translateY(-1px);
 }
 
 form {
-  background-color: var(--vt-orange);
+  background: rgba(255, 255, 255, 0.95);
   color: var(--vt-maroon);
+  padding: 1.5rem;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+fieldset {
+  border: 1px solid rgba(99, 0, 49, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+legend {
+  font-weight: 700;
+  padding: 0 0.35rem;
+}
+
+form p {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.9rem 0;
+  text-align: left;
+}
+
+label {
+  font-weight: 600;
+}
+
+input,
+select,
+button {
+  padding: 0.8rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #d3d4d6;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--vt-teal);
+  border-color: var(--vt-teal);
+}
+
+button {
+  background: var(--vt-teal);
+  color: var(--vt-white);
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+[role='alert'] {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-top: 0.75rem;
 }
 
 table {
-  background-color: var(--vt-stone);
-  color: var(--vt-impact-orange);
+  width: 100%;
   border-collapse: collapse;
-  border: 8px solid var(--vt-maroon);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--vt-maroon);
+  overflow: hidden;
 }
 
-tr, th, td {
-  border: 8px solid var(--vt-maroon);
-  border-radius: 8px;
-  border-collapse: collapse;
-  color: var(--vt-orange);
-  padding: 0%;
-  background-color: var(--vt-smoke);
+th,
+td {
+  padding: 0.9rem;
+  border-bottom: 1px solid #e6e6e6;
+  text-align: left;
 }
 
-input, button, select {
-  background-color: var(--vt-smoke);
-  color: var(--vt-orange);
-  padding: 1rem;
+th {
+  background: var(--vt-orange);
+  color: var(--vt-white);
+}
+
+tbody tr:hover {
+  background: #f7f5f2;
+}
+
+footer {
+  background: rgba(202, 79, 0, 0.95);
+  color: var(--vt-white);
+  padding: 1rem 1.2rem;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .main-content {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  header {
+    padding: 1.25rem;
+  }
+
+  nav {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
 }
