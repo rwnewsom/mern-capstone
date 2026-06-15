@@ -7,7 +7,9 @@ This project is a simple full-stack exercise tracking application built with the
 - React
 - Node.js
 
-# NOTE - uses Virginia Tech Colors because my kid recently got accepted there
+This was completed as the capstone project for CS290 (Web Development) at Oregon State University
+
+# NOTE - uses Virginia Tech Colors and logo because my kid recently got accepted there
 
 ## Project Structure
 
@@ -51,6 +53,16 @@ npm run dev
 ```
 
 The frontend should then be available in your browser at the Vite local URL.
+
+## Running Tests
+
+Run backend tests with:
+```bash
+cd backend-rest
+npm test
+```
+
+This uses Node's built-in test runner and exercises the backend validation logic.
 
 ## Features
 
