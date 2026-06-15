@@ -4,7 +4,7 @@
   "description": "Backend API for portfolio project",
   "main": "exercise_controller.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "start": "nodemon exercise_controller.mjs"
   },
   "author": "Rob Newsom",

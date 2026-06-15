@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import asyncHandler from 'express-async-handler';
+import { pathToFileURL } from 'node:url';
 
 import express from 'express';
 import * as exercises from './exercise_model.mjs';
@@ -39,10 +40,18 @@ const validateExerciseInput = (data) => {
     return { name, reps, weight, unit, date };
 };
 
-app.listen(PORT, async () => {
-    await exercises.connect()
-    console.log(`Server listening on port: ${PORT}...`);
-});
+const startServer = () => {
+    app.listen(PORT, async () => {
+        await exercises.connect();
+        console.log(`Server listening on port: ${PORT}...`);
+    });
+};
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+    startServer();
+}
+
+export { validateExerciseInput };
 
 app.post('/exercises', asyncHandler(async (req, res) => {
     const validatedInput = validateExerciseInput(req.body);

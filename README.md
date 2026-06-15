@@ -7,6 +7,8 @@ This project is a simple full-stack exercise tracking application built with the
 - React
 - Node.js
 
+# NOTE - uses Virginia Tech Colors because my kid recently got accepted there
+
 ## Project Structure
 
 - backend-rest: Express API and MongoDB model/controller
