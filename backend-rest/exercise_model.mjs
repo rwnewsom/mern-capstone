@@ -8,13 +8,18 @@ let connection = undefined;
  * This function connects to the MongoDB server.
  */
 async function connect(){
+    if (connection) {
+        return connection;
+    }
+
     try{
         await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
         connection = mongoose.connection;
         console.log("Successfully connected to MongoDB using Mongoose!");
+        return connection;
     } catch(err){
-        console.log(err);
-        throw Error(`Could not connect to MongoDB ${err.message}`)
+        console.error(err);
+        throw new Error(`Could not connect to MongoDB: ${err.message}`);
     }
 }
 
@@ -38,39 +43,30 @@ const Exercise = mongoose.model('Exercise', exerciseSchema);
 // 3. CRUD operations
 const createExercise = async (name, reps, weight, unit, date) => {
     const exercise = new Exercise({
-        name: name,
-        reps: reps,
-        weight: weight,
-        unit: unit,
-        date: date
+        name,
+        reps,
+        weight,
+        unit,
+        date
     });
-    console.log('Executing  create query...')
+    console.log('Executing create query...');
     return await exercise.save();
 }
 
 const retrieveExercises = async () => {
-    const query = Exercise.find({});
-    // console.log('Executing  retrieve query...')
-    return await query.exec();
+    return await Exercise.find({}).exec();
 }
 
 const retrieveExerciseById = async (exerciseId) => {
-    const query = Exercise.find({"_id": exerciseId});
-    return await query.exec();
+    return await Exercise.findById(exerciseId).exec();
 }
 
 const updateExerciseById = async (exerciseId, updates) => {
-    const filter = {"_id": exerciseId};
-    const query = Exercise.updateOne(filter, updates);
-    return await query.exec();
+    return await Exercise.updateOne({ _id: exerciseId }, updates).exec();
 }
 
-// last op implement delete
-const deleteExerciseById = async(exerciseId) => {
-    const filter = {"_id": exerciseId};
-    const query = Exercise.deleteOne(filter);
-    const result = await query.exec();
-    return result;
+const deleteExerciseById = async (exerciseId) => {
+    return await Exercise.deleteOne({ _id: exerciseId }).exec();
 }
 
 export { 
