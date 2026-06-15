@@ -1,17 +1,43 @@
 import 'dotenv/config';
 import asyncHandler from 'express-async-handler';
 
-import express, { response } from 'express';
+import express from 'express';
 import * as exercises from './exercise_model.mjs';
 
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 const INVALID_REQUEST = {"Error": "Invalid request"};
 const NOT_FOUND = {"Error": "Not found"};
 const VALID_UNITS = ['kgs', 'lbs', 'miles'];
+
+const validateExerciseInput = (data) => {
+    const { name, reps, weight, unit, date } = data ?? {};
+
+    if (typeof name !== 'string' || name.trim() === '') {
+        return null;
+    }
+
+    if (!Number.isInteger(reps) || reps <= 0) {
+        return null;
+    }
+
+    if (!Number.isInteger(weight) || weight < 0) {
+        return null;
+    }
+
+    if (typeof unit !== 'string' || !VALID_UNITS.includes(unit)) {
+        return null;
+    }
+
+    if (typeof date !== 'string' || !Date.parse(date)) {
+        return null;
+    }
+
+    return { name, reps, weight, unit, date };
+};
 
 app.listen(PORT, async () => {
     await exercises.connect()
@@ -19,47 +45,16 @@ app.listen(PORT, async () => {
 });
 
 app.post('/exercises', asyncHandler(async (req, res) => {
-    // todo: refactor if time permits
-    // update time did not permit. later will pull out a validator func
-    // console.log('+*+* RETRIEVE CONTROLLER HIT *+*+*')
-    const name = req.body.name;
-    if (!name || typeof name !== 'string'){
+    const validatedInput = validateExerciseInput(req.body);
+
+    if (!validatedInput) {
         return res.status(400).json(INVALID_REQUEST);
     }
 
-    const reps = req.body.reps;
-    if (!reps || typeof reps !== 'number' || 
-        !Number.isInteger(reps) || reps <=0 ) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
+    const { name, reps, weight, unit, date } = validatedInput;
+    const result = await exercises.createExercise(name, reps, weight, unit, date);
 
-    const weight = req.body.weight; //issue: !weight will fail if 0;
-    if (typeof weight !== 'number' || 
-        !Number.isInteger(weight) || weight < 0 ) {
-        return res.status(400).json(INVALID_REQUEST);
-        }
-
-    const unit = req.body.unit;
-    if (!unit || typeof unit !== 'string' || !VALID_UNITS.includes(unit) ) {
-        return res.status(400).json(INVALID_REQUEST);
-    } 
-    
-    const date = req.body.date;
-    if (!date || !Date.parse(date)) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
-    else {
-        const result = await exercises.createExercise(
-        name,
-        reps,
-        weight,
-        unit,
-        date
-    );
-
-    // console.log('Sending get response...')
     return res.status(201).json(result);
-    }
 }));
 
 app.get('/exercises', asyncHandler(async (req, res) => {
@@ -81,54 +76,21 @@ app.get('/exercises/:id', asyncHandler(async (req, res) => {
 
 app.put('/exercises/:id', asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
-    
-    const name = req.body.name;
-    if (!name || typeof name !== 'string'){
+    const validatedInput = validateExerciseInput(req.body);
+
+    if (!validatedInput) {
         return res.status(400).json(INVALID_REQUEST);
     }
 
-    const reps = req.body.reps;
-    if (!reps || typeof reps !== 'number' || 
-        !Number.isInteger(reps) || reps <= 0
-    ) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
-
-    const weight = req.body.weight;
-    if (
-        typeof weight !== 'number' || 
-        !Number.isInteger(weight) || weight < 0 ){
-            return res.status(400).json(INVALID_REQUEST);
-        }
-
-    const unit = req.body.unit;
-    if (!unit || typeof unit !== 'string' || !VALID_UNITS.includes(unit) ) {
-        return res.status(400).json(INVALID_REQUEST);
-    } 
-    
-    const date = req.body.date;
-    if (!date || !Date.parse(date)) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
-
-    const updates = {
-        name: name,
-        reps: reps,
-        weight: weight,
-        unit: unit,
-        date: date
-    }
-
+    const updates = validatedInput;
     const result = await exercises.updateExerciseById(exerciseId, updates);
 
-    if (result.matchedCount === 0){
-        res.status(404).json(NOT_FOUND)
+    if (result.matchedCount === 0) {
+        return res.status(404).json(NOT_FOUND);
     }
 
-    else{
-        const result = await exercises.retrieveExerciseById(exerciseId);
-        res.status(200).json(result.shift());
-    }
+    const updatedExercise = await exercises.retrieveExerciseById(exerciseId);
+    return res.status(200).json(updatedExercise.shift());
 }));
 
 app.delete('/exercises/:id', asyncHandler(async (req, res) => {
