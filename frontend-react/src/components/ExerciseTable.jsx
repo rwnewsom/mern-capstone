@@ -17,13 +17,13 @@ function ExerciseTable({ exercises, DeleteIcon, setExercises, onEdit }) {
             </tr>
           </thead>
           <tbody>
-            {exercises.map((exercise, i) => (
+            {exercises.map((exercise) => (
               <ExerciseRow
                 exercise={exercise}
                 DeleteIcon={DeleteIcon}
                 setExercises={setExercises}
                 onEdit={onEdit}
-                key={i}
+                key={exercise._id}
               />
             ))}
           </tbody>
