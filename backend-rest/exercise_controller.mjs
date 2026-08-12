@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import asyncHandler from 'express-async-handler';
+import cors from 'cors';
 import { pathToFileURL } from 'node:url';
 
 import express from 'express';
@@ -7,6 +8,7 @@ import * as exercises from './exercise_model.mjs';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
@@ -52,6 +54,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export { validateExerciseInput };
+
+app.get('/health', asyncHandler(async (req, res) => {
+    return res.status(200).json({ status: 'ok' });
+}));
 
 app.post('/exercises', asyncHandler(async (req, res) => {
     const validatedInput = validateExerciseInput(req.body);

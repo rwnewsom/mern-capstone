@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/exercises': {
-      target: 'http://localhost:3000'
-      } 
+        target: 'http://localhost:3000'
+      }
     }
   }
 })
