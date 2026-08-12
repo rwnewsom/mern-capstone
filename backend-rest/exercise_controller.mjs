@@ -105,11 +105,9 @@ app.put('/exercises/:id', asyncHandler(async (req, res) => {
 app.delete('/exercises/:id', asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
     const result = await exercises.deleteExerciseById(exerciseId);
-    
-    if (result.deletedCount === 0){
-        res.status(404).json(NOT_FOUND);
+
+    if (result.deletedCount === 0) {
+        return res.status(404).json(NOT_FOUND);
     }
-    else {
-        res.status(204).json();
-    }
+    return res.status(204).json();
 }));
