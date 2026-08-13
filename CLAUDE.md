@@ -199,7 +199,57 @@ newsomro-a9/
 - Health checks configured in ECS task definition
 - Graceful shutdown not yet implemented (TODO: Phase 5)
 
-## Development Workflow
+## Development Workflow - Branch Protection & CI/CD
+
+### ⚠️ Important: No Direct Commits to Main
+
+**As of Step 5.5, all changes must go through Pull Requests.**
+
+- ❌ DO NOT commit directly to main
+- ✅ DO create a feature branch
+- ✅ DO push to GitHub and create a PR
+- ✅ DO wait for GitHub Actions tests to pass
+- ✅ DO merge only after tests pass
+
+### GitHub Actions CI/CD Pipeline
+
+Every pull request automatically runs:
+1. **Backend tests** (15 tests) - Must pass
+2. **Frontend tests** (29 tests) - Must pass
+3. **All Tests Passed check** - Blocks merge if any fail
+
+### Feature Branch Workflow
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/your-feature
+
+# 2. Make changes and commit
+git add .
+git commit -m "Your change description"
+
+# 3. Test locally (BEFORE pushing)
+npm test
+
+# 4. Push to GitHub
+git push origin feature/your-feature
+
+# 5. Create Pull Request on GitHub
+# - Go to GitHub
+# - Click "New Pull Request"
+# - Select main as base, your branch as compare
+# - Add description and create PR
+
+# 6. GitHub Actions runs tests automatically
+# - Wait for tests to pass (2-3 minutes)
+# - If fail: Fix and push again
+# - If pass: PR is ready to merge
+
+# 7. Merge the PR
+# - Click "Merge pull request" on GitHub
+# - Delete feature branch
+# - Done!
+```
 
 ### Running Locally
 
@@ -248,11 +298,35 @@ node --test --watch
 
 ### Git Workflow
 
-- Main branch is production-ready
-- Feature branches for new work
-- Commit messages describe "why", not "what" (code shows what)
+**Branch Strategy:**
+- `main` branch: Production-ready, stable code only
+- Feature branches: All new work (feature/*, fix/*, refactor/*)
+- Direct commits to main: ❌ NOT ALLOWED
+- Pull requests: ✅ REQUIRED for all changes
+
+**Branch Naming:**
+- `feature/user-authentication` - New features
+- `fix/validation-bug` - Bug fixes
+- `refactor/api-structure` - Code improvements
+- `docs/api-guide` - Documentation
+
+**Commit Message Format:**
+```
+Brief summary (50 chars max)
+
+Detailed explanation (if needed)
+Keep to 72 chars per line
+
+Relates to: (optional reference)
+```
+
+**Important Rules:**
 - `.env` files are in `.gitignore` (never commit credentials)
-- `plan.md` is in `.gitignore` (work document, not part of deliverable)
+- `plan.md` and `auth-plan.md` in `.gitignore` (work documents)
+- Test before pushing
+- Push to feature branch, create PR on GitHub
+- Wait for GitHub Actions CI to pass
+- Merge only after all tests pass
 
 ## Known Limitations & Future Work
 
