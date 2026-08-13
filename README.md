@@ -152,6 +152,48 @@ npm run dev
 
 The frontend should then be available in your browser at the Vite local URL.
 
+## CI/CD Pipeline
+
+This project uses GitHub Actions to automatically run tests on every pull request. All tests must pass before code can be merged to the main branch.
+
+**Branch Protection Rules:**
+- ✅ Pull requests required for all changes
+- ✅ Backend and frontend tests must pass
+- ✅ Branches must be up to date before merging
+- ✅ Direct commits to main are disabled
+
+**For detailed information:** See [GITHUB_WORKFLOW.md](./GITHUB_WORKFLOW.md)
+
+### Development Workflow
+
+1. **Create a feature branch** (never commit to main)
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make changes and test locally**
+   ```bash
+   npm test  # Run tests before pushing
+   ```
+
+3. **Push to GitHub and create a Pull Request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+4. **GitHub Actions runs tests automatically**
+   - Backend tests (15 tests)
+   - Frontend tests (29 tests)
+   - Status shown in PR
+
+5. **Fix any failing tests**
+   - Tests fail? Fix locally and push again
+   - Workflow runs automatically on each push
+
+6. **Merge when tests pass**
+   - ✅ All tests passing → PR can be merged
+   - ❌ Any tests failing → PR is blocked
+
 ## Running Tests
 
 ### Local Testing (without Docker)
