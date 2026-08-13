@@ -5,12 +5,12 @@
   },
   "lint-staged": {
     "backend-rest/**/*.{js,mjs}": [
-      "prettier --write",
-      "eslint"
+      "backend-rest/node_modules/.bin/prettier --write",
+      "backend-rest/node_modules/.bin/eslint"
     ],
     "frontend-react/**/*.{js,jsx}": [
-      "prettier --write",
-      "eslint"
+      "frontend-react/node_modules/.bin/prettier --write",
+      "frontend-react/node_modules/.bin/eslint"
     ]
   }
 }
