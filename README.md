@@ -181,16 +181,29 @@ node --test --watch
 
 ## API Endpoints
 
+All endpoints return JSON responses. Base URL: `http://localhost:3000` (or appropriate host in production).
+
 ### GET /health
 Health check endpoint for monitoring service status.
+
+**Status Code:** 200 OK
 
 **Response:**
 ```json
 { "status": "ok" }
 ```
 
+**Example:**
+```bash
+curl http://localhost:3000/health
+```
+
+---
+
 ### GET /exercises
-Retrieve all exercises.
+Retrieve all exercises from the database.
+
+**Status Code:** 200 OK
 
 **Response:**
 ```json
@@ -202,12 +215,70 @@ Retrieve all exercises.
     "weight": 0,
     "unit": "lbs",
     "date": "2026-08-12T00:00:00.000Z"
+  },
+  {
+    "_id": "507f1f77bcf86cd799439012",
+    "name": "Running",
+    "reps": 1,
+    "weight": 0,
+    "unit": "miles",
+    "date": "2026-08-11T00:00:00.000Z"
   }
 ]
 ```
 
+**Example:**
+```bash
+curl http://localhost:3000/exercises
+```
+
+---
+
+### GET /exercises/:id
+Retrieve a specific exercise by its MongoDB ObjectId.
+
+**Parameters:**
+- `id` (string, required): MongoDB ObjectId of the exercise
+
+**Status Code:** 
+- `200 OK` - Exercise found
+- `404 Not Found` - Exercise not found
+
+**Response (Success):**
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "name": "Pushups",
+  "reps": 20,
+  "weight": 0,
+  "unit": "lbs",
+  "date": "2026-08-12T00:00:00.000Z"
+}
+```
+
+**Response (Not Found):**
+```json
+{ "Error": "Not found" }
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/exercises/507f1f77bcf86cd799439011
+```
+
+---
+
 ### POST /exercises
-Create a new exercise.
+Create a new exercise record.
+
+**Status Code:**
+- `201 Created` - Exercise created successfully
+- `400 Bad Request` - Invalid input
+
+**Request Headers:**
+```
+Content-Type: application/json
+```
 
 **Request Body:**
 ```json
@@ -220,13 +291,178 @@ Create a new exercise.
 }
 ```
 
-**Valid Units:** `kgs`, `lbs`, `miles`
+**Validation Rules:**
+- `name` (string, required): Non-empty exercise name
+- `reps` (integer, required): Positive number > 0
+- `weight` (integer, required): Non-negative number >= 0
+- `unit` (string, required): One of: `kgs`, `lbs`, `miles`
+- `date` (string, required): Valid ISO 8601 date (YYYY-MM-DD)
+
+**Response (Success):**
+```json
+{
+  "_id": "507f1f77bcf86cd799439013",
+  "name": "Pushups",
+  "reps": 20,
+  "weight": 0,
+  "unit": "lbs",
+  "date": "2026-08-12"
+}
+```
+
+**Response (Invalid Input):**
+```json
+{ "Error": "Invalid request" }
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/exercises \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Squats",
+    "reps": 15,
+    "weight": 135,
+    "unit": "lbs",
+    "date": "2026-08-12"
+  }'
+```
+
+---
 
 ### PUT /exercises/:id
-Update an existing exercise by ID.
+Update an existing exercise record.
+
+**Parameters:**
+- `id` (string, required): MongoDB ObjectId of the exercise
+
+**Status Code:**
+- `200 OK` - Exercise updated successfully
+- `400 Bad Request` - Invalid input
+- `404 Not Found` - Exercise not found
+
+**Request Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:** (Same validation rules as POST)
+```json
+{
+  "name": "Squats",
+  "reps": 15,
+  "weight": 185,
+  "unit": "lbs",
+  "date": "2026-08-12"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "name": "Squats",
+  "reps": 15,
+  "weight": 185,
+  "unit": "lbs",
+  "date": "2026-08-12"
+}
+```
+
+**Response (Not Found):**
+```json
+{ "Error": "Not found" }
+```
+
+**Response (Invalid Input):**
+```json
+{ "Error": "Invalid request" }
+```
+
+**Example:**
+```bash
+curl -X PUT http://localhost:3000/exercises/507f1f77bcf86cd799439011 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Squats",
+    "reps": 15,
+    "weight": 185,
+    "unit": "lbs",
+    "date": "2026-08-12"
+  }'
+```
+
+---
 
 ### DELETE /exercises/:id
-Delete an exercise by ID.
+Delete an exercise record.
+
+**Parameters:**
+- `id` (string, required): MongoDB ObjectId of the exercise
+
+**Status Code:**
+- `204 No Content` - Exercise deleted successfully
+- `404 Not Found` - Exercise not found
+
+**Response (Success):**
+No response body (204 No Content)
+
+**Response (Not Found):**
+```json
+{ "Error": "Not found" }
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:3000/exercises/507f1f77bcf86cd799439011
+```
+
+---
+
+## Error Handling
+
+### Common Error Responses
+
+**Invalid Request (400 Bad Request):**
+```json
+{ "Error": "Invalid request" }
+```
+Returned when POST/PUT receives invalid or missing fields.
+
+**Not Found (404 Not Found):**
+```json
+{ "Error": "Not found" }
+```
+Returned when GET/PUT/DELETE references a non-existent exercise.
+
+---
+
+## Environment Variables
+
+### Backend (.env file)
+
+Create `backend-rest/.env`:
+```
+PORT=3000
+MONGODB_CONNECT_STRING=mongodb://[username]:[password]@host:port/database
+```
+
+**For Docker:** Use MongoDB connection string with service name:
+```
+MONGODB_CONNECT_STRING=mongodb://username:password@mongodb:27017/exercises
+```
+
+### Frontend (.env file)
+
+Create `frontend-react/.env`:
+```
+VITE_API_URL=http://localhost:3000
+```
+
+**For Docker:** Use service name:
+```
+VITE_API_URL=http://backend:3000
+```
 
 ---
 
