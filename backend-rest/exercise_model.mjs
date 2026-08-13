@@ -44,31 +44,32 @@ const exerciseSchema = mongoose.Schema(
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // 3. CRUD operations
-const createExercise = async (name, reps, weight, unit, date) => {
+const createExercise = async (name, reps, weight, unit, date, userId) => {
   const exercise = new Exercise({
     name,
     reps,
     weight,
     unit,
     date,
+    userId,
   });
   return await exercise.save();
 };
 
-const retrieveExercises = async () => {
-  return await Exercise.find({}).exec();
+const retrieveExercises = async (userId) => {
+  return await Exercise.find({ userId }).exec();
 };
 
-const retrieveExerciseById = async (exerciseId) => {
-  return await Exercise.findById(exerciseId).exec();
+const retrieveExerciseById = async (exerciseId, userId) => {
+  return await Exercise.findOne({ _id: exerciseId, userId }).exec();
 };
 
-const updateExerciseById = async (exerciseId, updates) => {
-  return await Exercise.updateOne({ _id: exerciseId }, updates).exec();
+const updateExerciseById = async (exerciseId, userId, updates) => {
+  return await Exercise.updateOne({ _id: exerciseId, userId }, updates).exec();
 };
 
-const deleteExerciseById = async (exerciseId) => {
-  return await Exercise.deleteOne({ _id: exerciseId }).exec();
+const deleteExerciseById = async (exerciseId, userId) => {
+  return await Exercise.deleteOne({ _id: exerciseId, userId }).exec();
 };
 
 export {

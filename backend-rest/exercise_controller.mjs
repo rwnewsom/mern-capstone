@@ -10,6 +10,7 @@ import { globalLimiter, exerciseLimiter } from './rate_limiter.mjs';
 import { validateExerciseFields, validationErrorHandler } from './sanitizer.mjs';
 import { VALID_UNITS, ERROR_RESPONSES } from './constants.mjs';
 import authRoutes from './auth_routes.mjs';
+import { verifyToken } from './auth_middleware.mjs';
 
 const app = express();
 app.use(express.json());
@@ -78,20 +79,22 @@ app.get(
 
 app.post(
   '/exercises',
+  verifyToken,
   exerciseLimiter,
   validateExerciseFields,
   validationErrorHandler,
   asyncHandler(async (req, res) => {
     const { name, reps, weight, unit, date } = req.body;
-    const result = await exercises.createExercise(name, reps, weight, unit, date);
+    const result = await exercises.createExercise(name, reps, weight, unit, date, req.userId);
     return res.status(201).json(result);
   })
 );
 
 app.get(
   '/exercises',
+  verifyToken,
   asyncHandler(async (req, res) => {
-    const result = await exercises.retrieveExercises();
+    const result = await exercises.retrieveExercises(req.userId);
     return res.status(200).json(result);
   })
 );
@@ -99,9 +102,10 @@ app.get(
 // debug note - missed trailing `/`
 app.get(
   '/exercises/:id',
+  verifyToken,
   asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
-    const result = await exercises.retrieveExerciseById(exerciseId);
+    const result = await exercises.retrieveExerciseById(exerciseId, req.userId);
 
     if (!result) {
       return res.status(404).json(NOT_FOUND);
@@ -113,28 +117,30 @@ app.get(
 
 app.put(
   '/exercises/:id',
+  verifyToken,
   exerciseLimiter,
   validateExerciseFields,
   validationErrorHandler,
   asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
     const updates = req.body;
-    const result = await exercises.updateExerciseById(exerciseId, updates);
+    const result = await exercises.updateExerciseById(exerciseId, req.userId, updates);
 
     if (result.matchedCount === 0) {
       return res.status(404).json(NOT_FOUND);
     }
 
-    const updatedExercise = await exercises.retrieveExerciseById(exerciseId);
+    const updatedExercise = await exercises.retrieveExerciseById(exerciseId, req.userId);
     return res.status(200).json(updatedExercise);
   })
 );
 
 app.delete(
   '/exercises/:id',
+  verifyToken,
   asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
-    const result = await exercises.deleteExerciseById(exerciseId);
+    const result = await exercises.deleteExerciseById(exerciseId, req.userId);
 
     if (result.deletedCount === 0) {
       return res.status(404).json(NOT_FOUND);
