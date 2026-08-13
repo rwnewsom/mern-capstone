@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0"
+  },
+  "lint-staged": {
+    "backend-rest/**/*.{js,mjs}": [
+      "cd backend-rest && npm run format --",
+      "cd backend-rest && npm run lint --"
+    ],
+    "frontend-react/**/*.{js,jsx}": [
+      "cd frontend-react && npm run format --",
+      "cd frontend-react && npm run lint --"
+    ]
+  }
+}
