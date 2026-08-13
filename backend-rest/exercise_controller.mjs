@@ -6,17 +6,19 @@ import { pathToFileURL } from 'node:url';
 import express from 'express';
 import * as exercises from './exercise_model.mjs';
 import { logger, requestLogger } from './logger.mjs';
+import { globalLimiter, exerciseLimiter } from './rate_limiter.mjs';
+import { validateExerciseFields, validationErrorHandler } from './sanitizer.mjs';
+import { VALID_UNITS, ERROR_RESPONSES } from './constants.mjs';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(requestLogger);
+app.use(globalLimiter);
 
 const PORT = process.env.PORT || 3000;
 
-const INVALID_REQUEST = {"Error": "Invalid request"};
-const NOT_FOUND = {"Error": "Not found"};
-const VALID_UNITS = ['kgs', 'lbs', 'miles'];
+const { INVALID_REQUEST, NOT_FOUND } = ERROR_RESPONSES;
 
 const validateExerciseInput = (data) => {
     const { name, reps, weight, unit, date } = data ?? {};
@@ -61,16 +63,13 @@ app.get('/health', asyncHandler(async (req, res) => {
     return res.status(200).json({ status: 'ok' });
 }));
 
-app.post('/exercises', asyncHandler(async (req, res) => {
-    const validatedInput = validateExerciseInput(req.body);
+app.get('/config/units', asyncHandler(async (req, res) => {
+    return res.status(200).json({ units: VALID_UNITS });
+}));
 
-    if (!validatedInput) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
-
-    const { name, reps, weight, unit, date } = validatedInput;
+app.post('/exercises', exerciseLimiter, validateExerciseFields, validationErrorHandler, asyncHandler(async (req, res) => {
+    const { name, reps, weight, unit, date } = req.body;
     const result = await exercises.createExercise(name, reps, weight, unit, date);
-
     return res.status(201).json(result);
 }));
 
@@ -91,15 +90,9 @@ app.get('/exercises/:id', asyncHandler(async (req, res) => {
     return res.status(200).json(result);
 }));
 
-app.put('/exercises/:id', asyncHandler(async (req, res) => {
+app.put('/exercises/:id', exerciseLimiter, validateExerciseFields, validationErrorHandler, asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
-    const validatedInput = validateExerciseInput(req.body);
-
-    if (!validatedInput) {
-        return res.status(400).json(INVALID_REQUEST);
-    }
-
-    const updates = validatedInput;
+    const updates = req.body;
     const result = await exercises.updateExerciseById(exerciseId, updates);
 
     if (result.matchedCount === 0) {

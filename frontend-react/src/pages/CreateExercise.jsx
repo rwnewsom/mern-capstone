@@ -2,6 +2,7 @@ import { React, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
 import { fetchWithTimeout, handleApiError } from '../utils/api';
+import { VALID_UNITS, API_ENDPOINTS } from '../constants';
 
 export const CreateExercisePage = () => {
 
@@ -132,13 +133,12 @@ export const CreateExercisePage = () => {
                 />
             </p>
 
-            {/* this part was tricky, initial attempt broke the form */}
-            <p> 
+            <p>
                 <label htmlFor="unit">Unit</label>
                 <select id="unit" name="unit" value={unit} onChange={e => setUnit(e.target.value)}>
-                    <option value="kgs">kgs</option>
-                    <option value="lbs">lbs</option>
-                    <option value="miles">miles</option>
+                    {VALID_UNITS.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                    ))}
                 </select>
             </p>
 
