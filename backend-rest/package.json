@@ -2,10 +2,14 @@
   "name": "newsomro_assignment9",
   "version": "1.0.0",
   "description": "Backend API for portfolio project",
+  "type": "module",
   "main": "exercise_controller.mjs",
   "scripts": {
     "test": "node --test",
-    "start": "nodemon exercise_controller.mjs"
+    "start": "nodemon exercise_controller.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "author": "Rob Newsom",
   "license": "ISC",
@@ -19,6 +23,9 @@
     "mongoose": "^8.5.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.1",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.9.6"
   }
 }

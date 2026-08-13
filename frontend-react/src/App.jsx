@@ -7,7 +7,7 @@ import CreateExercisePage from './pages/CreateExercise';
 import EditExercisePage from './pages/EditExercise';
 import RetrieveExercises from './pages/RetrieveExercises';
 import ErrorBoundary from './components/ErrorBoundary';
-import { FaCopyright } from "react-icons/fa";
+import { FaCopyright } from 'react-icons/fa';
 
 function App() {
   const [exerciseToEdit, setExerciseToEdit] = useState(null);
@@ -20,25 +20,28 @@ function App() {
           <p>For OSU Beavers that are Buff, Buff curious, or Buff positive</p>
         </header>
 
-          <Router>
+        <Router>
           <nav>
             <Link to="/">Retrieve</Link>
             <Link to="/create">Create</Link>
           </nav>
           <Routes>
-            <Route path="/" element={<RetrieveExercises setExerciseToEdit={setExerciseToEdit} />}></Route>
-            <Route path="/create" element={<CreateExercisePage/>}></Route>
+            <Route
+              path="/"
+              element={<RetrieveExercises setExerciseToEdit={setExerciseToEdit} />}
+            ></Route>
+            <Route path="/create" element={<CreateExercisePage />}></Route>
             <Route path="/update" element={<EditExercisePage exercise={exerciseToEdit} />}></Route>
           </Routes>
         </Router>
 
-          <footer>
-            <p>
-              <span>
-                <FaCopyright /> All Right Reserved - Author Rob Newsom
-              </span>
-            </p>
-          </footer>
+        <footer>
+          <p>
+            <span>
+              <FaCopyright /> All Right Reserved - Author Rob Newsom
+            </span>
+          </p>
+        </footer>
       </div>
     </ErrorBoundary>
   );

@@ -7,7 +7,7 @@ describe('ErrorBoundary Component', () => {
     vi.stubGlobal('console', {
       error: vi.fn(),
       log: vi.fn(),
-      warn: vi.fn()
+      warn: vi.fn(),
     });
   });
 
