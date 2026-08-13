@@ -9,12 +9,15 @@ import { logger, requestLogger } from './logger.mjs';
 import { globalLimiter, exerciseLimiter } from './rate_limiter.mjs';
 import { validateExerciseFields, validationErrorHandler } from './sanitizer.mjs';
 import { VALID_UNITS, ERROR_RESPONSES } from './constants.mjs';
+import authRoutes from './auth_routes.mjs';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(requestLogger);
 app.use(globalLimiter);
+
+app.use('/auth', authRoutes);
 
 const PORT = process.env.PORT || 3000;
 

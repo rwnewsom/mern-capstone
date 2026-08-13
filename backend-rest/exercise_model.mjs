@@ -32,6 +32,7 @@ const exerciseSchema = mongoose.Schema(
     weight: { type: Number, required: true },
     unit: { type: String, required: true },
     date: { type: Date, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
   },
   { collection: 'exercises' }
 );
