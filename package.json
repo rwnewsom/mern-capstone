@@ -6,11 +6,11 @@
   "lint-staged": {
     "backend-rest/**/*.{js,mjs}": [
       "backend-rest/node_modules/.bin/prettier --write",
-      "backend-rest/node_modules/.bin/eslint"
+      "cd backend-rest && npx eslint"
     ],
     "frontend-react/**/*.{js,jsx}": [
       "frontend-react/node_modules/.bin/prettier --write",
-      "frontend-react/node_modules/.bin/eslint"
+      "cd frontend-react && npx eslint"
     ]
   }
 }
