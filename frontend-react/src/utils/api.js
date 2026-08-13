@@ -7,7 +7,7 @@ export const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TI
   try {
     const response = await fetch(url, {
       ...options,
-      signal: controller.signal
+      signal: controller.signal,
     });
     clearTimeout(timeoutId);
     return response;

@@ -2,7 +2,7 @@ const LOG_LEVELS = {
   ERROR: 'ERROR',
   WARN: 'WARN',
   INFO: 'INFO',
-  DEBUG: 'DEBUG'
+  DEBUG: 'DEBUG',
 };
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -13,7 +13,7 @@ const formatLog = (level, message, data = {}) => {
     timestamp,
     level,
     message,
-    ...data
+    ...data,
   });
 };
 
@@ -34,7 +34,7 @@ export const logger = {
     if (isDevelopment) {
       console.debug(formatLog(LOG_LEVELS.DEBUG, message, data));
     }
-  }
+  },
 };
 
 export const requestLogger = (req, res, next) => {
@@ -47,7 +47,7 @@ export const requestLogger = (req, res, next) => {
       path: req.path,
       statusCode: res.statusCode,
       duration: `${duration}ms`,
-      ip: req.ip
+      ip: req.ip,
     });
   });
 

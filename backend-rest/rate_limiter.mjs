@@ -7,7 +7,7 @@ const createLimiter = (windowMs, maxRequests, message) => {
     message,
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === 'development'
+    skip: (_req) => process.env.NODE_ENV === 'development',
   });
 };
 

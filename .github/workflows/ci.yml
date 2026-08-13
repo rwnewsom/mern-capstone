@@ -5,6 +5,37 @@ on:
     branches: [main]
 
 jobs:
+  backend-lint:
+    name: Backend Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'backend-rest/package-lock.json'
+
+      - name: Install backend dependencies
+        working-directory: backend-rest
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: backend-rest
+        run: npm run lint
+
+      - name: Check code formatting with Prettier
+        working-directory: backend-rest
+        run: npm run format:check
+
+      - name: Check npm audit for critical vulnerabilities
+        working-directory: backend-rest
+        run: npm audit --audit-level=critical
+
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
@@ -27,6 +58,60 @@ jobs:
       - name: Run backend tests
         working-directory: backend-rest
         run: npm test
+
+  frontend-lint:
+    name: Frontend Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend-react/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: frontend-react
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: frontend-react
+        run: npm run lint
+
+      - name: Check code formatting with Prettier
+        working-directory: frontend-react
+        run: npm run format:check
+
+      - name: Run npm audit
+        working-directory: frontend-react
+        run: npm audit --audit-level=moderate
+
+  frontend-build:
+    name: Frontend Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend-react/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: frontend-react
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend-react
+        run: npm run build
 
   frontend-tests:
     name: Frontend Tests
@@ -51,17 +136,45 @@ jobs:
         working-directory: frontend-react
         run: npm test -- --run
 
-  all-tests-passed:
-    name: All Tests Passed
-    needs: [backend-tests, frontend-tests]
+  all-checks-passed:
+    name: All Checks Passed
+    needs: [backend-lint, backend-tests, frontend-lint, frontend-build, frontend-tests]
     runs-on: ubuntu-latest
     if: always()
 
     steps:
-      - name: Check test results
+      - name: Check all results
         run: |
-          if [ "${{ needs.backend-tests.result }}" != "success" ] || [ "${{ needs.frontend-tests.result }}" != "success" ]; then
-            echo "❌ Tests failed. Please fix the failing tests before merging."
+          failed=0
+
+          if [ "${{ needs.backend-lint.result }}" != "success" ]; then
+            echo "❌ Backend linting failed"
+            failed=1
+          fi
+
+          if [ "${{ needs.backend-tests.result }}" != "success" ]; then
+            echo "❌ Backend tests failed"
+            failed=1
+          fi
+
+          if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
+            echo "❌ Frontend linting failed"
+            failed=1
+          fi
+
+          if [ "${{ needs.frontend-build.result }}" != "success" ]; then
+            echo "❌ Frontend build failed"
+            failed=1
+          fi
+
+          if [ "${{ needs.frontend-tests.result }}" != "success" ]; then
+            echo "❌ Frontend tests failed"
+            failed=1
+          fi
+
+          if [ $failed -eq 1 ]; then
+            echo "❌ Some checks failed. Please review the errors above."
             exit 1
           fi
-          echo "✅ All tests passed!"
+
+          echo "✅ All checks passed!"

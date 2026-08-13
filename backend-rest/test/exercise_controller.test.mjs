@@ -52,7 +52,7 @@ test('validation: accepts valid exercise payload', () => {
     reps: 20,
     weight: 0,
     unit: 'kgs',
-    date: '2024-01-01'
+    date: '2024-01-01',
   };
 
   assert.deepEqual(validateExerciseInput(validPayload), validPayload);
@@ -79,10 +79,10 @@ test('POST /exercises: returns 201 on valid input', () => {
       responseStatus = code;
       return this;
     },
-    json(data) {
-      responseData = data;
+    json(_data) {
+      responseData = _data;
       return this;
-    }
+    },
   };
 
   const validInput = {
@@ -90,7 +90,7 @@ test('POST /exercises: returns 201 on valid input', () => {
     reps: 15,
     weight: 135,
     unit: 'lbs',
-    date: '2024-01-01'
+    date: '2024-01-01',
   };
 
   // Simulate validation and response
@@ -113,9 +113,9 @@ test('POST /exercises: returns 400 on invalid input', () => {
       responseStatus = code;
       return this;
     },
-    json(data) {
+    json(_data) {
       return this;
-    }
+    },
   };
 
   const invalidInput = { name: '', reps: 3, weight: 10, unit: 'kgs', date: '2024-01-01' };
@@ -143,7 +143,7 @@ test('GET /exercises/:id: returns 404 when not found', () => {
     json(data) {
       responseData = data;
       return this;
-    }
+    },
   };
 
   // Simulate DB result (not found)
@@ -171,7 +171,7 @@ test('DELETE /exercises/:id: returns 404 when not found', () => {
     json(data) {
       responseData = data;
       return this;
-    }
+    },
   };
 
   // Simulate DB delete result (not found)
@@ -195,9 +195,9 @@ test('DELETE /exercises/:id: returns 204 on successful delete', () => {
       responseStatus = code;
       return this;
     },
-    json(data) {
+    json(_data) {
       return this;
-    }
+    },
   };
 
   // Simulate DB delete result (success)
@@ -224,7 +224,7 @@ test('PUT /exercises/:id: returns 404 when not found', () => {
     json(data) {
       responseData = data;
       return this;
-    }
+    },
   };
 
   const validInput = { name: 'Updated', reps: 10, weight: 50, unit: 'kgs', date: '2024-01-01' };
@@ -254,9 +254,9 @@ test('PUT /exercises/:id: returns 400 on invalid input', () => {
       responseStatus = code;
       return this;
     },
-    json(data) {
+    json(_data) {
       return this;
-    }
+    },
   };
 
   const invalidInput = { name: '', reps: 10, weight: 50, unit: 'kgs', date: '2024-01-01' };
