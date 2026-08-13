@@ -5,10 +5,12 @@ import { pathToFileURL } from 'node:url';
 
 import express from 'express';
 import * as exercises from './exercise_model.mjs';
+import { logger, requestLogger } from './logger.mjs';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(requestLogger);
 
 const PORT = process.env.PORT || 3000;
 
@@ -45,7 +47,7 @@ const validateExerciseInput = (data) => {
 const startServer = () => {
     app.listen(PORT, async () => {
         await exercises.connect();
-        console.log(`Server listening on port: ${PORT}...`);
+        logger.info(`Server started`, { port: PORT });
     });
 };
 

@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 
 import ExerciseTable from '../components/ExerciseTable';
 import DeleteIcon from '../components/DeleteIcon';
+import Toast from '../components/Toast';
+import { fetchWithTimeout, handleApiError } from '../utils/api';
 
 function RetrieveExercises({ setExerciseToEdit }) {
     const navigate = useNavigate();
     const [exercises, setExercises] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [toast, setToast] = useState(null);
 
     const onEdit = async exerciseToEdit => {
         setExerciseToEdit(exerciseToEdit);
@@ -21,7 +24,7 @@ function RetrieveExercises({ setExerciseToEdit }) {
         setErrorMessage('');
 
         try {
-            const response = await fetch('/exercises');
+            const response = await fetchWithTimeout('/exercises');
             const data = await response.json();
 
             if (!response.ok) {
@@ -30,8 +33,9 @@ function RetrieveExercises({ setExerciseToEdit }) {
 
             setExercises(data);
         } catch (error) {
-            console.error(error);
-            setErrorMessage(error.message || 'Unable to load exercises.');
+            const errorMsg = handleApiError(error);
+            setErrorMessage(errorMsg);
+            setToast({ message: errorMsg, type: 'error' });
         } finally {
             setIsLoading(false);
         }
@@ -43,6 +47,13 @@ function RetrieveExercises({ setExerciseToEdit }) {
 
     return (
         <>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             <h2>List of Exercises</h2>
             {isLoading && <p>Loading exercises...</p>}
             {errorMessage && <p role="alert">{errorMessage}</p>}

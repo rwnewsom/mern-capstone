@@ -6,19 +6,21 @@ import { useState } from 'react';
 import CreateExercisePage from './pages/CreateExercise';
 import EditExercisePage from './pages/EditExercise';
 import RetrieveExercises from './pages/RetrieveExercises';
+import ErrorBoundary from './components/ErrorBoundary';
 import { FaCopyright } from "react-icons/fa";
 
 function App() {
   const [exerciseToEdit, setExerciseToEdit] = useState(null);
 
   return (
-    <div className="main-content">
-      <header>
-        <h1>Exercise Tracker</h1>
-        <p>For OSU Beavers that are Buff, Buff curious, or Buff positive</p>
-      </header>
-      
-        <Router>
+    <ErrorBoundary>
+      <div className="main-content">
+        <header>
+          <h1>Exercise Tracker</h1>
+          <p>For OSU Beavers that are Buff, Buff curious, or Buff positive</p>
+        </header>
+
+          <Router>
           <nav>
             <Link to="/">Retrieve</Link>
             <Link to="/create">Create</Link>
@@ -30,14 +32,15 @@ function App() {
           </Routes>
         </Router>
 
-        <footer>
-          <p> 
-            <span>
-              <FaCopyright /> All Right Reserved - Author Rob Newsom
-            </span>
-          </p>
-        </footer>
-    </div>
+          <footer>
+            <p>
+              <span>
+                <FaCopyright /> All Right Reserved - Author Rob Newsom
+              </span>
+            </p>
+          </footer>
+      </div>
+    </ErrorBoundary>
   );
 }
 

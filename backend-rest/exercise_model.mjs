@@ -1,6 +1,6 @@
-// Get the mongoose object
 import mongoose from 'mongoose';
 import 'dotenv/config';
+import { logger } from './logger.mjs';
 
 let connection = undefined;
 
@@ -15,10 +15,10 @@ async function connect(){
     try{
         await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
         connection = mongoose.connection;
-        console.log("Successfully connected to MongoDB using Mongoose!");
+        logger.info("Database connection established");
         return connection;
     } catch(err){
-        console.error(err);
+        logger.error("Database connection failed", { error: err.message });
         throw new Error(`Could not connect to MongoDB: ${err.message}`);
     }
 }
@@ -49,7 +49,6 @@ const createExercise = async (name, reps, weight, unit, date) => {
         unit,
         date
     });
-    console.log('Executing create query...');
     return await exercise.save();
 }
 

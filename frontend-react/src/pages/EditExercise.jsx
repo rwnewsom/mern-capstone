@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
+import { fetchWithTimeout, handleApiError } from '../utils/api';
 
 const EditExercisePage = ({ exercise }) => {
 
@@ -10,6 +12,7 @@ const EditExercisePage = ({ exercise }) => {
     const [date, setDate] = useState(exercise?.date?.split('T')[0] ?? '');
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [toast, setToast] = useState(null);
 
     useEffect(() => {
         setName(exercise?.name ?? '');
@@ -62,7 +65,7 @@ const EditExercisePage = ({ exercise }) => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`/exercises/${exercise._id}`, {
+            const response = await fetchWithTimeout(`/exercises/${exercise._id}`, {
                 method: 'PUT',
                 headers: { 'Content-type': 'application/json' },
                 body: JSON.stringify(updatedExercise),
@@ -70,15 +73,18 @@ const EditExercisePage = ({ exercise }) => {
             const data = await response.json().catch(() => null);
 
             if (response.ok) {
-                alert('Update Successful!');
-                navigate('/');
+                setToast({ message: 'Exercise updated successfully!', type: 'success' });
+                setTimeout(() => navigate('/'), 1500);
             } else {
-                setErrorMessage(data?.Error || `Update Failed, Response: ${response.status}`);
+                const errorMsg = data?.Error || `Update Failed, Response: ${response.status}`;
+                setErrorMessage(errorMsg);
+                setToast({ message: errorMsg, type: 'error' });
             }
 
         } catch (e) {
-            console.error(e);
-            setErrorMessage('Unable to update exercise right now.');
+            const errorMsg = handleApiError(e);
+            setErrorMessage(errorMsg);
+            setToast({ message: errorMsg, type: 'error' });
         } finally {
             setIsSubmitting(false);
         }
@@ -86,6 +92,13 @@ const EditExercisePage = ({ exercise }) => {
 
     return (
         <div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             <h1>Update Exercise</h1>
             <form id="exerciseInfo" onSubmit={handleSubmit}>
             <fieldset>

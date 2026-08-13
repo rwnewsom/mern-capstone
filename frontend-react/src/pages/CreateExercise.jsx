@@ -1,5 +1,7 @@
 import { React, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
+import { fetchWithTimeout, handleApiError } from '../utils/api';
 
 export const CreateExercisePage = () => {
 
@@ -18,6 +20,7 @@ export const CreateExercisePage = () => {
     const [date, setDate] = useState(todayFormatted?.split('T')[0]); //fixme TZ aware?
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [toast, setToast] = useState(null);
 
     const navigate = useNavigate();
 
@@ -59,9 +62,10 @@ export const CreateExercisePage = () => {
         };
 
         setIsSubmitting(true);
+        setErrorMessage('');
 
         try {
-            const response = await fetch("/exercises", {
+            const response = await fetchWithTimeout("/exercises", {
                 method: "POST",
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify(newExercise),
@@ -69,14 +73,17 @@ export const CreateExercisePage = () => {
             const data = await response.json().catch(() => null);
 
             if (response.ok) {
-                alert('Create Successful!');
-                navigate('/');
+                setToast({ message: 'Exercise created successfully!', type: 'success' });
+                setTimeout(() => navigate('/'), 1500);
             } else {
-                setErrorMessage(data?.Error || `Create Failed, Response: ${response.status}`);
+                const errorMsg = data?.Error || `Create Failed, Response: ${response.status}`;
+                setErrorMessage(errorMsg);
+                setToast({ message: errorMsg, type: 'error' });
             }
         } catch (e) {
-            console.error(e);
-            setErrorMessage('Unable to create exercise right now.');
+            const errorMsg = handleApiError(e);
+            setErrorMessage(errorMsg);
+            setToast({ message: errorMsg, type: 'error' });
         } finally {
             setIsSubmitting(false);
         }
@@ -84,6 +91,13 @@ export const CreateExercisePage = () => {
 
     return (
         <div>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             <h1>Create Exercise</h1>
             <form id="exerciseInfo" onSubmit={handleSubmit}>
             <fieldset>
