@@ -5,12 +5,12 @@
   },
   "lint-staged": {
     "backend-rest/**/*.{js,mjs}": [
-      "cd backend-rest && npm run format --",
-      "cd backend-rest && npm run lint --"
+      "prettier --write",
+      "eslint"
     ],
     "frontend-react/**/*.{js,jsx}": [
-      "cd frontend-react && npm run format --",
-      "cd frontend-react && npm run lint --"
+      "prettier --write",
+      "eslint"
     ]
   }
 }
