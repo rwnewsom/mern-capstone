@@ -9,22 +9,28 @@ Cypress is already installed as a dev dependency. No additional setup required.
 ## Running Tests
 
 ### Interactive Mode (Recommended for Development)
+
 ```bash
 npm run cypress:open
 ```
+
 This opens the Cypress UI where you can:
+
 - See all test files
 - Run individual tests
 - Watch tests run in real-time
 - Inspect elements and debug
 
 ### Headless Mode (CI/CD)
+
 ```bash
 npm run cypress:run
 ```
+
 Runs all tests in headless mode and generates test reports.
 
 ### Run Specific Test
+
 ```bash
 npx cypress run --spec "cypress/e2e/auth-flow.cy.js"
 ```
@@ -32,14 +38,18 @@ npx cypress run --spec "cypress/e2e/auth-flow.cy.js"
 ## Test Structure
 
 ### `cypress/support/e2e.js`
+
 Global test helpers and commands:
+
 - `cy.login(email, password)` — Login to existing account
 - `cy.register(email, username, password)` — Register and auto-login
 - `cy.verifyLoggedIn(username)` — Assert user is logged in
 - `cy.verifyLoggedOut()` — Assert user is logged out
 
 ### `cypress/e2e/auth-flow.cy.js`
+
 Authentication regression tests:
+
 - ✅ User registration with auto-login
 - ✅ Duplicate email error handling
 - ✅ Invalid username validation
@@ -54,7 +64,9 @@ Authentication regression tests:
 - ✅ Navigation updates immediately after logout
 
 ### `cypress/e2e/exercise-crud.cy.js`
+
 Exercise CRUD operation regression tests:
+
 - ✅ Create first exercise
 - ✅ Create second exercise
 - ✅ Error handling for missing fields
@@ -69,11 +81,13 @@ Exercise CRUD operation regression tests:
 ## Prerequisites for Running Tests
 
 1. **Backend must be running** on `http://localhost:3000`
+
    ```bash
    cd backend-rest && npm start
    ```
 
 2. **Frontend must be running** on `http://localhost:5173`
+
    ```bash
    cd frontend-react && npm run dev
    ```
@@ -91,6 +105,7 @@ Tests are configured to run in GitHub Actions on every PR. See `.github/workflow
 3. Follow existing test patterns for consistency
 
 Example:
+
 ```javascript
 describe('New Feature', () => {
   it('should do something', () => {
@@ -104,27 +119,34 @@ describe('New Feature', () => {
 ## Debugging
 
 ### View Console Logs
+
 In Cypress UI, check the "Console" tab to see browser console messages.
 
 ### Slow Down Tests
+
 Add `.pause()` or `.debug()` to any command:
+
 ```javascript
 cy.login(email, password).debug();
 cy.contains('text').pause(); // Pauses execution
 ```
 
 ### Take Screenshots
+
 ```javascript
 cy.screenshot('my-screenshot');
 ```
+
 Screenshots are saved to `cypress/screenshots/`
 
 ## Test Data
 
 Tests create new test accounts for each run using timestamps:
+
 ```javascript
 const testEmail = `test-${Date.now()}@example.com`;
 ```
+
 This ensures tests don't conflict with existing data.
 
 ## Known Issues / Limitations

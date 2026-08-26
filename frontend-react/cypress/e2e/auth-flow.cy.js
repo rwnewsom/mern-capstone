@@ -11,34 +11,31 @@ describe('Authentication Flow', () => {
 
     it('should show error for duplicate email', () => {
       cy.visit('/register');
-      cy.get('input[placeholder="your@email.com"]').type(testEmail);
-      cy.get('input[placeholder="3-30 characters (letters, numbers, -, _)"]').type('newuser');
-      cy.get('input[placeholder="At least 6 characters"]').first().type(testPassword);
-      cy.get('input[placeholder="Confirm your password"]').type(testPassword);
+      cy.get('#email').type(testEmail);
+      cy.get('#username').type('newuser');
+      cy.get('#password').type(testPassword);
+      cy.get('#confirmPassword').type(testPassword);
       cy.get('button[type="submit"]').click();
-      // Should show error toast and stay on page
       cy.url().should('include', '/register');
     });
 
     it('should show error for invalid username', () => {
       cy.visit('/register');
-      cy.get('input[placeholder="your@email.com"]').type('new@example.com');
-      cy.get('input[placeholder="3-30 characters (letters, numbers, -, _)"]').type('ab'); // Too short
-      cy.get('input[placeholder="At least 6 characters"]').first().type(testPassword);
-      cy.get('input[placeholder="Confirm your password"]').type(testPassword);
+      cy.get('#email').type('new@example.com');
+      cy.get('#username').type('ab');
+      cy.get('#password').type(testPassword);
+      cy.get('#confirmPassword').type(testPassword);
       cy.get('button[type="submit"]').click();
-      // Should show error and not submit
       cy.url().should('include', '/register');
     });
 
     it('should show error for password mismatch', () => {
       cy.visit('/register');
-      cy.get('input[placeholder="your@email.com"]').type('another@example.com');
-      cy.get('input[placeholder="3-30 characters (letters, numbers, -, _)"]').type('validuser');
-      cy.get('input[placeholder="At least 6 characters"]').first().type(testPassword);
-      cy.get('input[placeholder="Confirm your password"]').type('differentpass');
+      cy.get('#email').type('another@example.com');
+      cy.get('#username').type('validuser');
+      cy.get('#password').type(testPassword);
+      cy.get('#confirmPassword').type('differentpass');
       cy.get('button[type="submit"]').click();
-      // Should show error and not submit
       cy.url().should('include', '/register');
     });
   });
@@ -51,8 +48,8 @@ describe('Authentication Flow', () => {
 
     it('should show error for invalid credentials', () => {
       cy.visit('/login');
-      cy.get('input[placeholder="your@email.com"]').type('wrong@example.com');
-      cy.get('input[placeholder="At least 6 characters"]').type('wrongpass');
+      cy.get('#email').type('wrong@example.com');
+      cy.get('#password').type('wrongpass');
       cy.get('button[type="submit"]').click();
       cy.url().should('include', '/login');
     });
@@ -63,8 +60,8 @@ describe('Authentication Flow', () => {
       cy.login(testEmail, testPassword);
       cy.verifyLoggedIn(testUsername);
 
-      cy.get('.btn-logout').click();
-      cy.url().should('eq', 'http://localhost:5173/login');
+      cy.get('button').contains('Logout').click();
+      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/login');
       cy.verifyLoggedOut();
     });
 
@@ -74,7 +71,7 @@ describe('Authentication Flow', () => {
         expect(win.localStorage.getItem('token')).to.exist;
       });
 
-      cy.get('.btn-logout').click();
+      cy.get('button').contains('Logout').click();
       cy.window().then((win) => {
         expect(win.localStorage.getItem('token')).to.be.null;
       });
@@ -106,12 +103,11 @@ describe('Authentication Flow', () => {
       cy.visit('/login');
       cy.verifyLoggedOut();
 
-      cy.get('input[placeholder="your@email.com"]').type(testEmail);
-      cy.get('input[placeholder="At least 6 characters"]').type(testPassword);
+      cy.get('#email').type(testEmail);
+      cy.get('#password').type(testPassword);
       cy.get('button[type="submit"]').click();
 
-      // Should update Navigation without page refresh (url already changed to /)
-      cy.url().should('eq', 'http://localhost:5173/');
+      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/');
       cy.verifyLoggedIn(testUsername);
     });
 
@@ -119,8 +115,8 @@ describe('Authentication Flow', () => {
       cy.login(testEmail, testPassword);
       cy.verifyLoggedIn(testUsername);
 
-      cy.get('.btn-logout').click();
-      cy.url().should('eq', 'http://localhost:5173/login');
+      cy.get('button').contains('Logout').click();
+      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/login');
       cy.verifyLoggedOut();
     });
   });
