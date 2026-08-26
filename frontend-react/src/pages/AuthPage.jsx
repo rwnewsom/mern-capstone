@@ -6,6 +6,7 @@ import { fetchWithTimeout, handleApiError } from '../utils/api';
 export default function AuthPage({ isRegister = false }) {
   const [isSignUp, setIsSignUp] = useState(isRegister);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,6 +25,30 @@ export default function AuthPage({ isRegister = false }) {
         return;
       }
 
+      if (isSignUp && !username) {
+        setError('Username is required');
+        setLoading(false);
+        return;
+      }
+
+      if (isSignUp && username.length < 3) {
+        setError('Username must be at least 3 characters');
+        setLoading(false);
+        return;
+      }
+
+      if (isSignUp && username.length > 30) {
+        setError('Username must be at most 30 characters');
+        setLoading(false);
+        return;
+      }
+
+      if (isSignUp && !username.match(/^[a-z0-9_-]+$/)) {
+        setError('Username can only contain lowercase letters, numbers, underscores, and hyphens');
+        setLoading(false);
+        return;
+      }
+
       if (isSignUp && password !== confirmPassword) {
         setError('Passwords do not match');
         setLoading(false);
@@ -37,10 +62,11 @@ export default function AuthPage({ isRegister = false }) {
       }
 
       const endpoint = isSignUp ? '/auth/register' : '/auth/login';
+      const body = isSignUp ? { email, username, password } : { email, password };
       const response = await fetchWithTimeout(`http://localhost:3000${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -55,6 +81,8 @@ export default function AuthPage({ isRegister = false }) {
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userEmail', data.user.email);
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('userRole', data.user.role);
         navigate('/');
       }
     } catch (err) {
@@ -85,6 +113,21 @@ export default function AuthPage({ isRegister = false }) {
               required
             />
           </div>
+
+          {isSignUp && (
+            <div className="form-group">
+              <label htmlFor="username">Username:</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                placeholder="3-30 characters (letters, numbers, -, _)"
+                disabled={loading}
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="password">Password:</label>
@@ -128,6 +171,7 @@ export default function AuthPage({ isRegister = false }) {
                 setIsSignUp(!isSignUp);
                 setError('');
                 setEmail('');
+                setUsername('');
                 setPassword('');
                 setConfirmPassword('');
               }}
