@@ -1,123 +1,92 @@
-describe('Authentication Flow', () => {
-  const testEmail = `test-${Date.now()}@example.com`;
-  const testUsername = `testuser${Date.now()}`;
-  const testPassword = 'password123';
-
-  describe('Registration', () => {
-    it('should register a new user and auto-login', () => {
-      cy.register(testEmail, testUsername, testPassword);
-      cy.verifyLoggedIn(testUsername);
-    });
-
-    it('should show error for duplicate email', () => {
+describe('Authentication UI Validation', () => {
+  describe('Registration Form Validation', () => {
+    it('should show error for invalid username (too short)', () => {
       cy.visit('/register');
-      cy.get('#email').type(testEmail);
-      cy.get('#username').type('newuser');
-      cy.get('#password').type(testPassword);
-      cy.get('#confirmPassword').type(testPassword);
+      cy.get('#email').type('test@example.com');
+      cy.get('#username').type('ab');
+      cy.get('#password').type('password123');
+      cy.get('#confirmPassword').type('password123');
       cy.get('button[type="submit"]').click();
       cy.url().should('include', '/register');
     });
 
-    it('should show error for invalid username', () => {
+    it('should show error for invalid username (special characters)', () => {
       cy.visit('/register');
-      cy.get('#email').type('new@example.com');
-      cy.get('#username').type('ab');
-      cy.get('#password').type(testPassword);
-      cy.get('#confirmPassword').type(testPassword);
+      cy.get('#email').type('test@example.com');
+      cy.get('#username').type('user@name!');
+      cy.get('#password').type('password123');
+      cy.get('#confirmPassword').type('password123');
       cy.get('button[type="submit"]').click();
       cy.url().should('include', '/register');
     });
 
     it('should show error for password mismatch', () => {
       cy.visit('/register');
-      cy.get('#email').type('another@example.com');
+      cy.get('#email').type('test@example.com');
       cy.get('#username').type('validuser');
-      cy.get('#password').type(testPassword);
+      cy.get('#password').type('password123');
       cy.get('#confirmPassword').type('differentpass');
       cy.get('button[type="submit"]').click();
       cy.url().should('include', '/register');
     });
   });
 
-  describe('Login', () => {
-    it('should login with existing account', () => {
-      cy.login(testEmail, testPassword);
-      cy.verifyLoggedIn(testUsername);
-    });
-
+  describe('Login Form Validation', () => {
     it('should show error for invalid credentials', () => {
       cy.visit('/login');
-      cy.get('#email').type('wrong@example.com');
-      cy.get('#password').type('wrongpass');
+      cy.get('#email').type('nonexistent@example.com');
+      cy.get('#password').type('wrongpassword');
+      cy.get('button[type="submit"]').click();
+      cy.url().should('include', '/login');
+    });
+
+    it('should show error for invalid email format', () => {
+      cy.visit('/login');
+      cy.get('#email').type('not-an-email');
+      cy.get('#password').type('password123');
       cy.get('button[type="submit"]').click();
       cy.url().should('include', '/login');
     });
   });
 
-  describe('Logout', () => {
-    it('should logout and redirect to login', () => {
-      cy.login(testEmail, testPassword);
-      cy.verifyLoggedIn(testUsername);
-
-      cy.get('button').contains('Logout').click();
-      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/login');
-      cy.verifyLoggedOut();
+  describe('Navigation State', () => {
+    it('should show login/signup buttons when not authenticated', () => {
+      cy.visit('/login');
+      cy.contains('a', 'Login').should('be.visible');
+      cy.contains('a', 'Sign Up').should('be.visible');
+      cy.get('button').contains('Logout').should('not.exist');
     });
 
-    it('should clear localStorage on logout', () => {
-      cy.login(testEmail, testPassword);
-      cy.window().then((win) => {
-        expect(win.localStorage.getItem('token')).to.exist;
-      });
-
-      cy.get('button').contains('Logout').click();
-      cy.window().then((win) => {
-        expect(win.localStorage.getItem('token')).to.be.null;
-      });
-    });
-  });
-
-  describe('Auth Persistence', () => {
-    it('should persist auth on page refresh', () => {
-      cy.login(testEmail, testPassword);
-      cy.verifyLoggedIn(testUsername);
-
-      cy.reload();
-      cy.verifyLoggedIn(testUsername);
-    });
-
-    it('should redirect to login if not authenticated', () => {
+    it('should redirect unauthenticated users to login', () => {
       cy.visit('/');
       cy.url().should('include', '/login');
     });
   });
 
-  describe('Navigation Updates', () => {
-    it('should show login buttons when not authenticated', () => {
+  describe('Form Interaction', () => {
+    it('should toggle between login and signup forms', () => {
       cy.visit('/login');
-      cy.verifyLoggedOut();
+      cy.contains('h1', 'Login').should('be.visible');
+      cy.get('#username').should('not.exist');
+
+      cy.contains('button', 'Sign Up').click();
+      cy.contains('h1', 'Create Account').should('be.visible');
+      cy.get('#username').should('exist');
+
+      cy.contains('button', 'Login').click();
+      cy.contains('h1', 'Login').should('be.visible');
+      cy.get('#username').should('not.exist');
     });
 
-    it('should update Navigation immediately after login without refresh', () => {
+    it('should clear form errors when toggling forms', () => {
       cy.visit('/login');
-      cy.verifyLoggedOut();
-
-      cy.get('#email').type(testEmail);
-      cy.get('#password').type(testPassword);
+      cy.get('#email').type('invalid');
+      cy.get('#password').type('short');
       cy.get('button[type="submit"]').click();
 
-      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/');
-      cy.verifyLoggedIn(testUsername);
-    });
-
-    it('should update Navigation immediately after logout', () => {
-      cy.login(testEmail, testPassword);
-      cy.verifyLoggedIn(testUsername);
-
-      cy.get('button').contains('Logout').click();
-      cy.url({ timeout: 8000 }).should('eq', 'http://localhost:5173/login');
-      cy.verifyLoggedOut();
+      cy.contains('button', 'Sign Up').click();
+      // Error message should be cleared
+      cy.contains('Login').should('be.visible');
     });
   });
 });

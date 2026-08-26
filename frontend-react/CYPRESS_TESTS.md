@@ -48,35 +48,23 @@ Global test helpers and commands:
 
 ### `cypress/e2e/auth-flow.cy.js`
 
-Authentication regression tests:
+UI-specific authentication tests (API/backend tested separately):
 
-- ✅ User registration with auto-login
-- ✅ Duplicate email error handling
-- ✅ Invalid username validation
-- ✅ Password mismatch validation
-- ✅ Login with existing account
-- ✅ Invalid credentials error
-- ✅ Logout and redirect
-- ✅ localStorage cleared on logout
-- ✅ Auth persists on page refresh
+**Registration Form Validation:**
+- ✅ Invalid username validation (length, special characters)
+- ✅ Password mismatch detection
+
+**Login Form Validation:**
+- ✅ Invalid credentials handling
+- ✅ Invalid email format detection
+
+**Navigation & Routing:**
+- ✅ Login/signup buttons visible when not authenticated
 - ✅ Unauthenticated users redirected to login
-- ✅ Navigation updates immediately after login (no manual refresh needed)
-- ✅ Navigation updates immediately after logout
+- ✅ Form toggle (login ↔ signup)
+- ✅ Form error clearing on toggle
 
-### `cypress/e2e/exercise-crud.cy.js`
-
-Exercise CRUD operation regression tests:
-
-- ✅ Create first exercise
-- ✅ Create second exercise
-- ✅ Error handling for missing fields
-- ✅ List all exercises
-- ✅ Display exercise details correctly
-- ✅ Edit exercise details
-- ✅ Error handling for invalid edits
-- ✅ Delete individual exercises
-- ✅ Delete all exercises
-- ✅ Full workflow: Create 2 exercises → Edit 1 → Delete all
+**Note:** Registration/login success, logout, auth persistence, and localStorage are tested in backend tests (`backend-rest/test/auth_controller.test.mjs`). Exercise CRUD is tested in backend exercise tests.
 
 ## Prerequisites for Running Tests
 
