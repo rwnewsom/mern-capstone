@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import { logger } from './logger.mjs';
+import { config } from './config.mjs';
 
 let connection = undefined;
 
@@ -13,7 +14,7 @@ async function connect() {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
+    await mongoose.connect(config.mongodb.url);
     connection = mongoose.connection;
     logger.info('Database connection established');
     return connection;
