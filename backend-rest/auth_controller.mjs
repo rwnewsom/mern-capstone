@@ -66,11 +66,9 @@ export const register = async (req, res) => {
 
     const savedUser = await user.save();
 
-    const token = jwt.sign(
-      { userId: savedUser._id, role: savedUser.role },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
-    );
+    const token = jwt.sign({ userId: savedUser._id, role: savedUser.role }, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn,
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -105,8 +103,8 @@ export const login = async (req, res) => {
       return res.status(401).json({ Error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
+    const token = jwt.sign({ userId: user._id, role: user.role }, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn,
     });
 
     res.status(200).json({
