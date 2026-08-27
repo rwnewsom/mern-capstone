@@ -14,14 +14,6 @@ import userRoutes from './user_routes.mjs';
 import { verifyToken } from './auth_middleware.mjs';
 import { config, validateEnvironment } from './config.mjs';
 
-// Validate environment variables on startup
-try {
-  validateEnvironment();
-} catch (err) {
-  console.error('Environment validation failed:', err.message);
-  process.exit(1);
-}
-
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: config.cors.origin }));
@@ -62,6 +54,13 @@ const validateExerciseInput = (data) => {
 };
 
 const startServer = () => {
+  try {
+    validateEnvironment();
+  } catch (err) {
+    console.error('Environment validation failed:', err.message);
+    process.exit(1);
+  }
+
   app.listen(PORT, async () => {
     await exercises.connect();
     logger.info(`Server started`, { port: PORT });
