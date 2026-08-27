@@ -13,11 +13,27 @@ import authRoutes from './auth_routes.mjs';
 import userRoutes from './user_routes.mjs';
 import { verifyToken } from './auth_middleware.mjs';
 import { config, validateEnvironment } from './config.mjs';
+import { getFullHealth } from './health_check.mjs';
+import { recordRequest, getMetrics } from './metrics.mjs';
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: config.cors.origin }));
 app.use(requestLogger);
+
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const originalSend = res.send;
+
+  res.send = function (data) {
+    const responseTime = Date.now() - startTime;
+    recordRequest(req.method, req.path, res.statusCode, responseTime);
+    return originalSend.call(this, data);
+  };
+
+  next();
+});
+
 app.use(globalLimiter);
 
 app.use('/auth', authRoutes);
@@ -76,7 +92,17 @@ export { validateExerciseInput };
 app.get(
   '/health',
   asyncHandler(async (req, res) => {
-    return res.status(200).json({ status: 'ok' });
+    const health = await getFullHealth();
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    return res.status(statusCode).json(health);
+  })
+);
+
+app.get(
+  '/metrics',
+  asyncHandler(async (req, res) => {
+    const metrics = getMetrics();
+    return res.status(200).json(metrics);
   })
 );
 
