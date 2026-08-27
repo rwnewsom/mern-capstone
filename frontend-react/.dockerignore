@@ -1,9 +1,54 @@
+# Dependencies
 node_modules
 npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# Version control
 .git
 .gitignore
-README.md
+.github
+
+# Environment files
 .env
 .env.*
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# Testing (not needed in production image)
+cypress/
+__tests__/
+src/**/*.test.js
+src/**/*.test.jsx
+vitest.config.js
+
+# Build artifacts (removed in production stage)
 dist
+build
 .vite
+
+# Development tools
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Configuration (dev-only)
+.eslintignore
+.prettierignore
+.babelrc
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Docker files (not needed inside image)
+Dockerfile
+.dockerignore
+docker-compose*.yml
