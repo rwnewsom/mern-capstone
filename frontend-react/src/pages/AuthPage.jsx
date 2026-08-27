@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
 import { fetchWithTimeout, handleApiError } from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
 
 export default function AuthPage({ isRegister = false }) {
   const [isSignUp, setIsSignUp] = useState(isRegister);
@@ -12,6 +13,7 @@ export default function AuthPage({ isRegister = false }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,10 +81,7 @@ export default function AuthPage({ isRegister = false }) {
       const data = await response.json();
 
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userEmail', data.user.email);
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('userRole', data.user.role);
+        login(data.token, data.user.email, data.user.username, data.user.role);
         navigate('/');
       }
     } catch (err) {

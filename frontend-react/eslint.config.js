@@ -19,6 +19,8 @@ export default [
         expect: 'readonly',
         beforeEach: 'readonly',
         afterEach: 'readonly',
+        cy: 'readonly',
+        Cypress: 'readonly',
       },
       parserOptions: {
         ecmaVersion: 'latest',

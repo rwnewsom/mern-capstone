@@ -33,3 +33,14 @@ auth_backend_plan.md
 user_management_plan.md
 phase_8_telemetry_plan.md
 phase_9_eks_deployment.md
+
+# Claude Code local files
+.claude/settings*.json
+.claude/keybindings.json
+.claude/worktrees/
+# But DO commit .claude/launch.json for team consistency
+
+# Cypress test artifacts
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
