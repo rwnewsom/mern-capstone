@@ -1,8 +1,41 @@
+# Dependencies
 node_modules
 npm-debug.log
+
+# Version control
 .git
 .gitignore
-README.md
+.github
+
+# Environment files
 .env
 .env.*
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# Testing (not needed in production)
 test/
+__tests__/
+*.test.mjs
+*.test.js
+
+# Development tools
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Docker files (not needed inside image)
+Dockerfile
+.dockerignore
+docker-compose*.yml
