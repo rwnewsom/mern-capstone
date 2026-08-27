@@ -29,5 +29,13 @@
     "eslint": "^10.8.1",
     "nodemon": "^3.1.4",
     "prettier": "^3.9.6"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-trace-node": "^0.45.0",
+    "@opentelemetry/sdk-trace-base": "^0.45.0",
+    "@opentelemetry/exporter-jaeger-basic": "^0.45.0",
+    "@opentelemetry/instrumentation-express": "^0.32.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.40.0"
   }
 }
