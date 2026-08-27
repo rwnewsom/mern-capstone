@@ -29,6 +29,7 @@ import { verifyToken } from './auth_middleware.mjs';
 import { config, validateEnvironment } from './config.mjs';
 import { getFullHealth } from './health_check.mjs';
 import { recordRequest, getMetrics } from './metrics.mjs';
+import { formatPrometheusMetrics } from './prometheus_metrics.mjs';
 import { trackRequest, setupGracefulShutdown } from './graceful_shutdown.mjs';
 
 const app = express();
@@ -137,8 +138,17 @@ app.get(
 app.get(
   '/metrics',
   asyncHandler(async (req, res) => {
-    const metrics = getMetrics();
-    return res.status(200).json(metrics);
+    const format = req.query.format || 'prometheus';
+
+    if (format === 'json') {
+      const metrics = getMetrics();
+      return res.status(200).json(metrics);
+    }
+
+    // Default to Prometheus text format
+    const prometheusMetrics = formatPrometheusMetrics();
+    res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    return res.status(200).send(prometheusMetrics);
   })
 );
 
