@@ -18,34 +18,89 @@ This was completed as the capstone project for CS290 (Web Development) at Oregon
 
 ## Prerequisites
 
-### Option 1: Local Development
+### Global Requirements
 - Node.js 20+ and npm installed
-- A MongoDB Atlas connection string (for production) or use Docker Compose
+- Git for version control
 
-### Option 2: Docker
+### MongoDB Setup (Choose One)
+
+**Option A: Docker Compose (Recommended - Easiest)**
 - Docker and Docker Compose installed
+- No local MongoDB installation needed
+- Database runs in a container, automatically managed
+
+**Option B: Local MongoDB**
+- [Install MongoDB Community Edition](https://docs.mongodb.com/manual/installation/) on your machine
+- MongoDB service running locally (mongod)
+- Connection string: `mongodb://localhost:27017/exercise-tracker`
+
+**Option C: MongoDB Atlas (Cloud-hosted)**
+- Free account at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+- Cluster created in Atlas
+- Connection string from Atlas dashboard (includes credentials)
 
 ## Setup
 
-### Local Development Setup
+### Local Development Setup (Without Docker)
 
-1. Clone the repository
-2. Install backend dependencies:
-   ```bash
-   cd backend-rest
-   npm install
-   ```
-3. Install frontend dependencies:
-   ```bash
-   cd ../frontend-react
-   npm install
-   ```
-4. Configure the backend environment:
-   - Create `backend-rest/.env` (copy from `.env.example`)
-   - Update the MongoDB connection string in `backend-rest/.env`
-   - Make sure PORT is set as needed
+**Step 1: Clone and Install Dependencies**
+```bash
+git clone <repository-url>
+cd newsomro-a9
+
+# Backend
+cd backend-rest
+npm install
+
+# Frontend (in another terminal)
+cd ../frontend-react
+npm install
+```
+
+**Step 2: Configure MongoDB**
+
+Create `backend-rest/.env` by copying and editing `.env.example`:
+
+```bash
+cd backend-rest
+cp .env.example .env
+```
+
+Edit `.env` and uncomment ONE of the MongoDB options:
+
+**For Local MongoDB:**
+```env
+MONGODB_CONNECT_STRING=mongodb://localhost:27017/exercise-tracker
+PORT=3000
+JWT_SECRET=your_jwt_secret_key_here
+```
+
+**For MongoDB Atlas:**
+```env
+MONGODB_CONNECT_STRING=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/?appName=exercise-tracker
+PORT=3000
+JWT_SECRET=your_jwt_secret_key_here
+```
+
+**Step 3: Start the Application**
+
+Terminal 1 - Backend:
+```bash
+cd backend-rest
+npm start
+```
+
+Terminal 2 - Frontend:
+```bash
+cd frontend-react
+npm run dev
+```
+
+Access the app at `http://localhost:5173`
 
 ### Docker Setup (Recommended for Development & Production)
+
+Docker Compose includes **everything you need** - backend, frontend, and **local MongoDB**. No separate MongoDB installation required.
 
 #### First-Time Setup
 
@@ -59,8 +114,8 @@ This was completed as the capstone project for CS290 (Web Development) at Oregon
    On first run, Docker will:
    - Build the backend and frontend images
    - Pull the MongoDB image
-   - Create and start all containers
-   - Initialize the MongoDB database
+   - Create and start all containers with local MongoDB database
+   - Automatically configure MongoDB connection (no .env setup needed)
 
 #### Daily Usage
 
@@ -136,21 +191,46 @@ The `-v` flag removes the MongoDB data volume.
 - ✅ CORS enabled for cross-service communication
 - ✅ Hot-reload support for local development (code changes visible without rebuild)
 
+## MongoDB Setup Comparison
+
+| Feature | Docker Compose | Local MongoDB | MongoDB Atlas |
+|---------|---|---|---|
+| **Setup Time** | ~2 minutes | 10-15 minutes | 5 minutes |
+| **Installation** | None (Docker only) | Manual install | None (cloud) |
+| **Data Persistence** | Automatic (volumes) | Manual (filesystem) | Automatic (cloud) |
+| **Best For** | Quick start, team consistency | Simple local dev | Production, remote teams |
+| **Free Tier** | ✅ Yes | ✅ Yes | ✅ Yes (512MB) |
+| **Requires Connection String** | No (auto-configured) | Yes | Yes |
+| **Offline Development** | ✅ Works | ✅ Works | ❌ Requires internet |
+
+**Quick Recommendation:**
+- 👉 **New developers:** Use Docker Compose (easiest)
+- 👉 **Prefer local setup:** Install MongoDB locally
+- 👉 **Remote/team work:** Use MongoDB Atlas
+
 ## Running the App
 
-Start the backend:
+### Using Docker Compose:
+```bash
+docker-compose up
+```
+Visit `http://localhost` in your browser.
+
+### Using Local Setup (Without Docker):
+
+Terminal 1 - Start backend:
 ```bash
 cd backend-rest
 npm start
 ```
 
-Start the frontend in a separate terminal:
+Terminal 2 - Start frontend:
 ```bash
 cd frontend-react
 npm run dev
 ```
 
-The frontend should then be available in your browser at the Vite local URL.
+The frontend will be available at `http://localhost:5173`
 
 ## CI/CD Pipeline
 
