@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import { logger } from './logger.mjs';
 import { config } from './config.mjs';
+import { traceDbOperation } from './db_instrumentation.mjs';
 
 let connection = undefined;
 
@@ -46,31 +47,41 @@ const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // 3. CRUD operations
 const createExercise = async (name, reps, weight, unit, date, userId) => {
-  const exercise = new Exercise({
-    name,
-    reps,
-    weight,
-    unit,
-    date,
-    userId,
+  return traceDbOperation('save', 'exercises', 'insert', async () => {
+    const exercise = new Exercise({
+      name,
+      reps,
+      weight,
+      unit,
+      date,
+      userId,
+    });
+    return await exercise.save();
   });
-  return await exercise.save();
 };
 
 const retrieveExercises = async (userId) => {
-  return await Exercise.find({ userId }).exec();
+  return traceDbOperation('find', 'exercises', 'query', async () => {
+    return await Exercise.find({ userId }).exec();
+  });
 };
 
 const retrieveExerciseById = async (exerciseId, userId) => {
-  return await Exercise.findOne({ _id: exerciseId, userId }).exec();
+  return traceDbOperation('findOne', 'exercises', 'query', async () => {
+    return await Exercise.findOne({ _id: exerciseId, userId }).exec();
+  });
 };
 
 const updateExerciseById = async (exerciseId, userId, updates) => {
-  return await Exercise.updateOne({ _id: exerciseId, userId }, updates).exec();
+  return traceDbOperation('updateOne', 'exercises', 'update', async () => {
+    return await Exercise.updateOne({ _id: exerciseId, userId }, updates).exec();
+  });
 };
 
 const deleteExerciseById = async (exerciseId, userId) => {
-  return await Exercise.deleteOne({ _id: exerciseId, userId }).exec();
+  return traceDbOperation('deleteOne', 'exercises', 'delete', async () => {
+    return await Exercise.deleteOne({ _id: exerciseId, userId }).exec();
+  });
 };
 
 export {
