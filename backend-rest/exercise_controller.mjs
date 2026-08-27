@@ -15,11 +15,13 @@ import { verifyToken } from './auth_middleware.mjs';
 import { config, validateEnvironment } from './config.mjs';
 import { getFullHealth } from './health_check.mjs';
 import { recordRequest, getMetrics } from './metrics.mjs';
+import { trackRequest, setupGracefulShutdown } from './graceful_shutdown.mjs';
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: config.cors.origin }));
 app.use(requestLogger);
+app.use(trackRequest);
 
 app.use((req, res, next) => {
   const startTime = Date.now();
@@ -77,10 +79,12 @@ const startServer = () => {
     process.exit(1);
   }
 
-  app.listen(PORT, async () => {
+  const server = app.listen(PORT, async () => {
     await exercises.connect();
     logger.info(`Server started`, { port: PORT });
   });
+
+  setupGracefulShutdown(server);
 };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
