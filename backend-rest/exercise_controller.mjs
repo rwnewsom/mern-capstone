@@ -1,4 +1,18 @@
 import 'dotenv/config';
+
+// Initialize OpenTelemetry tracing (optional, happens asynchronously)
+let tracer = null;
+(async () => {
+  try {
+    const { initTracing } = await import('./tracing.mjs');
+    initTracing();
+    const { trace } = await import('@opentelemetry/api');
+    tracer = trace.getTracer('exercise-tracker-backend');
+  } catch {
+    // OpenTelemetry packages not installed, continue without tracing
+  }
+})();
+
 import asyncHandler from 'express-async-handler';
 import cors from 'cors';
 import { pathToFileURL } from 'node:url';
@@ -22,6 +36,24 @@ app.use(express.json());
 app.use(cors({ origin: config.cors.origin }));
 app.use(requestLogger);
 app.use(trackRequest);
+
+if (tracer) {
+  app.use((req, res, next) => {
+    const span = tracer.startSpan(`${req.method} ${req.path}`);
+    span.setAttributes({
+      'http.method': req.method,
+      'http.url': req.url,
+      'http.target': req.path,
+    });
+
+    res.on('finish', () => {
+      span.setAttributes({ 'http.status_code': res.statusCode });
+      span.end();
+    });
+
+    next();
+  });
+}
 
 app.use((req, res, next) => {
   const startTime = Date.now();

@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # Jaeger distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: exercise-tracker-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "6831:6831/udp"  # Jaeger collector (Thrift over UDP)
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    restart: unless-stopped
+
   # Express backend API
   backend:
     build:
@@ -26,11 +37,15 @@ services:
       MONGODB_CONNECT_STRING: mongodb://root:password@mongodb:27017/?authSource=admin
       PORT: 3000
       NODE_ENV: development
+      JAEGER_HOST: jaeger
+      JAEGER_PORT: 6831
     ports:
       - "3000:3000"
     depends_on:
       mongodb:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     volumes:
       - ./backend-rest:/app
       - /app/node_modules
