@@ -51,14 +51,17 @@ Global test helpers and commands:
 UI-specific authentication tests (API/backend tested separately):
 
 **Registration Form Validation:**
+
 - ✅ Invalid username validation (length, special characters)
 - ✅ Password mismatch detection
 
 **Login Form Validation:**
+
 - ✅ Invalid credentials handling
 - ✅ Invalid email format detection
 
 **Navigation & Routing:**
+
 - ✅ Login/signup buttons visible when not authenticated
 - ✅ Unauthenticated users redirected to login
 - ✅ Form toggle (login ↔ signup)
