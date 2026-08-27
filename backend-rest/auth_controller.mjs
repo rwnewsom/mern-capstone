@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from './user_model.mjs';
+import { config } from './config.mjs';
 
 export const validateAuthInput = (email, username, password) => {
   const errors = [];
@@ -67,8 +68,8 @@ export const register = async (req, res) => {
 
     const token = jwt.sign(
       { userId: savedUser._id, role: savedUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
     );
 
     res.status(201).json({

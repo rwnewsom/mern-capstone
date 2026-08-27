@@ -12,17 +12,26 @@ import { VALID_UNITS, ERROR_RESPONSES } from './constants.mjs';
 import authRoutes from './auth_routes.mjs';
 import userRoutes from './user_routes.mjs';
 import { verifyToken } from './auth_middleware.mjs';
+import { config, validateEnvironment } from './config.mjs';
+
+// Validate environment variables on startup
+try {
+  validateEnvironment();
+} catch (err) {
+  console.error('Environment validation failed:', err.message);
+  process.exit(1);
+}
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: config.cors.origin }));
 app.use(requestLogger);
 app.use(globalLimiter);
 
 app.use('/auth', authRoutes);
 app.use('/', userRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 const { NOT_FOUND } = ERROR_RESPONSES;
 

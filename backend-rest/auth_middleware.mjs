@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { config } from './config.mjs';
 
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -10,7 +11,7 @@ export const verifyToken = (req, res, next) => {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     req.userId = decoded.userId;
     req.userRole = decoded.role;
     next();
