@@ -5,12 +5,12 @@
   },
   "lint-staged": {
     "backend-rest/**/*.{js,mjs}": [
-      "backend-rest/node_modules/.bin/prettier --write",
-      "cd backend-rest && npx eslint"
+      "cd backend-rest && npx prettier --write",
+      "cd backend-rest && npx eslint --report-unused-disable-directives --max-warnings 0"
     ],
     "frontend-react/**/*.{js,jsx}": [
-      "frontend-react/node_modules/.bin/prettier --write",
-      "cd frontend-react && npx eslint"
+      "cd frontend-react && npx prettier --write",
+      "cd frontend-react && npx eslint --report-unused-disable-directives --max-warnings 0"
     ]
   }
 }
