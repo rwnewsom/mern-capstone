@@ -10,6 +10,7 @@ import { globalLimiter, exerciseLimiter } from './rate_limiter.mjs';
 import { validateExerciseFields, validationErrorHandler } from './sanitizer.mjs';
 import { VALID_UNITS, ERROR_RESPONSES } from './constants.mjs';
 import authRoutes from './auth_routes.mjs';
+import userRoutes from './user_routes.mjs';
 import { verifyToken } from './auth_middleware.mjs';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use(requestLogger);
 app.use(globalLimiter);
 
 app.use('/auth', authRoutes);
+app.use('/', userRoutes);
 
 const PORT = process.env.PORT || 3000;
 

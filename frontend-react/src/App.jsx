@@ -7,6 +7,7 @@ import CreateExercisePage from './pages/CreateExercise';
 import EditExercisePage from './pages/EditExercise';
 import RetrieveExercises from './pages/RetrieveExercises';
 import AuthPage from './pages/AuthPage';
+import AdminPage from './pages/AdminPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import { AuthProvider } from './context/AuthContext';
@@ -17,6 +18,21 @@ const ProtectedRoute = ({ children }) => {
   if (!token) {
     return <Navigate to="/login" replace />;
   }
+  return children;
+};
+
+const AdminRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem('userRole');
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (userRole !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 };
 
@@ -72,6 +88,14 @@ function App() {
                   <EditExercisePage exercise={exerciseToEdit} />
                 </div>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
             }
           />
         </Routes>
