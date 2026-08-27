@@ -27,6 +27,24 @@ services:
       COLLECTOR_OTLP_ENABLED: 'true'
     restart: unless-stopped
 
+  # Prometheus metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: exercise-tracker-prometheus
+    ports:
+      - "9090:9090"  # Prometheus UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - backend
+    restart: unless-stopped
+
   # Express backend API
   backend:
     build:
@@ -67,6 +85,7 @@ services:
 
 volumes:
   mongodb_data:
+  prometheus_data:
 
 networks:
   default:
