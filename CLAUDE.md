@@ -185,13 +185,15 @@ newsomro-a9/
 
 **Development (Local):**
 - Create `.env` file in backend-rest (copy from `.env.example`)
-- Set MongoDB connection string for Atlas or local MongoDB
+- Choose MongoDB setup: Docker Compose, Local MongoDB, or MongoDB Atlas
+- See [MONGODB_SETUP.md](./MONGODB_SETUP.md) for detailed setup instructions
 - Frontend uses Vite proxy to backend on localhost:3000
 
 **Docker (Local):**
 - docker-compose.yml handles all environment setup
 - Services reference each other by hostname
 - MongoDB runs in container with persistent volume
+- No .env configuration needed (auto-configured)
 
 **Production (AWS ECS):**
 - Environment variables passed via ECS task definition
