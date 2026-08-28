@@ -79,32 +79,6 @@ const PORT = config.port;
 
 const { NOT_FOUND } = ERROR_RESPONSES;
 
-const validateExerciseInput = (data) => {
-  const { name, reps, weight, unit, date } = data ?? {};
-
-  if (typeof name !== 'string' || name.trim() === '') {
-    return null;
-  }
-
-  if (!Number.isInteger(reps) || reps <= 0) {
-    return null;
-  }
-
-  if (!Number.isInteger(weight) || weight < 0) {
-    return null;
-  }
-
-  if (typeof unit !== 'string' || !VALID_UNITS.includes(unit)) {
-    return null;
-  }
-
-  if (typeof date !== 'string' || !Date.parse(date)) {
-    return null;
-  }
-
-  return { name, reps, weight, unit, date };
-};
-
 const startServer = () => {
   try {
     validateEnvironment();
@@ -124,8 +98,6 @@ const startServer = () => {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   startServer();
 }
-
-export { validateExerciseInput };
 
 app.get(
   '/health',
@@ -229,6 +201,6 @@ app.delete(
     if (result.deletedCount === 0) {
       return res.status(404).json(NOT_FOUND);
     }
-    return res.status(204).json();
+    return res.status(204).send();
   })
 );
