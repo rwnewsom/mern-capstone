@@ -22,7 +22,7 @@ services:
     container_name: exercise-tracker-jaeger
     ports:
       - "16686:16686"  # Jaeger UI
-      - "6831:6831/udp"  # Jaeger collector (Thrift over UDP)
+      - "4318:4318"    # OTLP/HTTP receiver (used by the backend to send spans)
     environment:
       COLLECTOR_OTLP_ENABLED: 'true'
     restart: unless-stopped
@@ -56,7 +56,7 @@ services:
       PORT: 3000
       NODE_ENV: development
       JAEGER_HOST: jaeger
-      JAEGER_PORT: 6831
+      JAEGER_OTLP_PORT: 4318
     ports:
       - "3000:3000"
     depends_on:

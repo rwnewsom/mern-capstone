@@ -1,18 +1,5 @@
 import 'dotenv/config';
 
-// Initialize OpenTelemetry tracing (optional, happens asynchronously)
-let tracer = null;
-(async () => {
-  try {
-    const { initTracing } = await import('./tracing.mjs');
-    initTracing();
-    const { trace } = await import('@opentelemetry/api');
-    tracer = trace.getTracer('exercise-tracker-backend');
-  } catch {
-    // OpenTelemetry packages not installed, continue without tracing
-  }
-})();
-
 import asyncHandler from 'express-async-handler';
 import cors from 'cors';
 import { pathToFileURL } from 'node:url';
@@ -31,6 +18,17 @@ import { getFullHealth } from './health_check.mjs';
 import { recordRequest, getMetrics } from './metrics.mjs';
 import { formatPrometheusMetrics } from './prometheus_metrics.mjs';
 import { trackRequest, setupGracefulShutdown } from './graceful_shutdown.mjs';
+import { initTracing } from './tracing.mjs';
+import { initDbTracer } from './db_instrumentation.mjs';
+import { context, trace } from '@opentelemetry/api';
+
+// Tracing initializes synchronously so this is settled before the request-span
+// middleware below decides whether to register itself. initTracing() degrades
+// to null (rather than throwing) if setup fails, so tracing is effectively optional.
+const tracer = initTracing();
+if (tracer) {
+  initDbTracer(tracer);
+}
 
 const app = express();
 app.use(express.json());
@@ -52,7 +50,10 @@ if (tracer) {
       span.end();
     });
 
-    next();
+    // Activate the span in context so DB spans started later in this request
+    // (traceDbOperation, via db_instrumentation.mjs) nest under it instead of
+    // each becoming its own disconnected root trace.
+    context.with(trace.setSpan(context.active(), span), next);
   });
 }
 

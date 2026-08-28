@@ -24,6 +24,9 @@ These have sensible defaults but can be overridden:
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
 - `CORS_ORIGIN` - CORS allowed origin (default: *)
 - `JWT_EXPIRES_IN` - JWT token expiration (default: 7d)
+- `JAEGER_HOST` - Hostname of the Jaeger collector (default: localhost)
+- `JAEGER_OTLP_PORT` - Jaeger's OTLP/HTTP receiver port (default: 4318). Tracing silently
+  disables itself if the endpoint is unreachable — this is never required for the app to start.
 
 ## Environment Setups
 

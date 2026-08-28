@@ -14,6 +14,12 @@
   "author": "Rob Newsom",
   "license": "ISC",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.221.0",
+    "@opentelemetry/resources": "^2.10.0",
+    "@opentelemetry/sdk-trace-base": "^2.10.0",
+    "@opentelemetry/sdk-trace-node": "^2.10.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -29,13 +35,5 @@
     "eslint": "^10.8.1",
     "nodemon": "^3.1.4",
     "prettier": "^3.9.6"
-  },
-  "optionalDependencies": {
-    "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/sdk-trace-node": "^0.45.0",
-    "@opentelemetry/sdk-trace-base": "^0.45.0",
-    "@opentelemetry/exporter-jaeger-basic": "^0.45.0",
-    "@opentelemetry/instrumentation-express": "^0.32.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.40.0"
   }
 }
