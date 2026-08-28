@@ -25,7 +25,7 @@ The CI workflow runs automatically when:
 - **Node Version:** 20
 - **Command:** `npm test`
 - **Runs:** Unit and integration tests
-- **Expected Output:** 15 tests passing
+- **Expected Output:** 165 tests passing
 
 #### 2. Frontend Tests
 - **Name:** `frontend-tests`
@@ -142,7 +142,7 @@ git checkout -b refactor/api-structure
    ↓
 3. Backend tests execute (5s-30s)
    ├─ Run: npm test
-   ├─ Expected: 15 tests pass
+   ├─ Expected: 165 tests pass
    └─ Status: ✅ or ❌
    ↓
 4. Frontend tests execute (10s-45s)
@@ -197,8 +197,9 @@ git checkout -b refactor/api-structure
 
 ### Common Test Failures
 
-**Backend Tests (15 tests)**
+**Backend Tests (165 tests)**
 - Validation tests: Check input constraints
+- Real HTTP integration tests: Auth, exercise ownership, admin authorization, rate limiting
 - Endpoint tests: Check HTTP responses
 - Error handling: Check error codes
 
@@ -370,7 +371,7 @@ Edit `.github/workflows/ci.yml` to:
 ## Summary
 
 ✅ **Automated testing on every PR**
-✅ **Both backend (15 tests) and frontend (29 tests) must pass**
+✅ **Both backend (165 tests) and frontend (29 tests) must pass**
 ✅ **Direct commits to main are prevented**
 ✅ **Clear feedback on test failures**
 ✅ **Easy to debug and fix issues**

@@ -155,6 +155,8 @@ Once running, the app will be available at:
 | **Frontend** | http://localhost | React web application |
 | **Backend API** | http://localhost:3000 | REST API endpoints |
 | **Backend Health** | http://localhost:3000/health | Health check |
+| **Jaeger UI** | http://localhost:16686 | Distributed tracing |
+| **Prometheus** | http://localhost:9090 | Metrics collection |
 | **MongoDB** | localhost:27017 | Database (internal only) |
 
 #### Rebuilding After Code Changes
@@ -262,7 +264,7 @@ This project uses GitHub Actions to automatically run tests on every pull reques
    ```
 
 4. **GitHub Actions runs tests automatically**
-   - Backend tests (15 tests)
+   - Backend tests (165 tests)
    - Frontend tests (29 tests)
    - Status shown in PR
 
@@ -284,7 +286,7 @@ cd backend-rest
 npm test
 ```
 
-This uses Node's built-in test runner and exercises the backend validation logic.
+Uses Node's built-in test runner. Covers validation, auth, exercise-ownership isolation, admin authorization, rate limiting, health checks, metrics, and tracing — see [GITHUB_WORKFLOW.md](./GITHUB_WORKFLOW.md) for what runs in CI.
 
 ### Running Tests in Docker
 
@@ -305,257 +307,161 @@ node --test --watch
 
 All endpoints return JSON responses. Base URL: `http://localhost:3000` (or appropriate host in production).
 
-### GET /health
-Health check endpoint for monitoring service status.
+Every `/exercises` and `/users` endpoint requires a JWT — see **Authentication** below. Requests are also rate-limited (see **Rate Limiting**).
 
-**Status Code:** 200 OK
+### Authentication
 
-**Response:**
-```json
-{ "status": "ok" }
-```
-
-**Example:**
-```bash
-curl http://localhost:3000/health
-```
-
----
-
-### GET /exercises
-Retrieve all exercises from the database.
-
-**Status Code:** 200 OK
-
-**Response:**
-```json
-[
-  {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "Pushups",
-    "reps": 20,
-    "weight": 0,
-    "unit": "lbs",
-    "date": "2026-08-12T00:00:00.000Z"
-  },
-  {
-    "_id": "507f1f77bcf86cd799439012",
-    "name": "Running",
-    "reps": 1,
-    "weight": 0,
-    "unit": "miles",
-    "date": "2026-08-11T00:00:00.000Z"
-  }
-]
-```
-
-**Example:**
-```bash
-curl http://localhost:3000/exercises
-```
-
----
-
-### GET /exercises/:id
-Retrieve a specific exercise by its MongoDB ObjectId.
-
-**Parameters:**
-- `id` (string, required): MongoDB ObjectId of the exercise
-
-**Status Code:** 
-- `200 OK` - Exercise found
-- `404 Not Found` - Exercise not found
-
-**Response (Success):**
-```json
-{
-  "_id": "507f1f77bcf86cd799439011",
-  "name": "Pushups",
-  "reps": 20,
-  "weight": 0,
-  "unit": "lbs",
-  "date": "2026-08-12T00:00:00.000Z"
-}
-```
-
-**Response (Not Found):**
-```json
-{ "Error": "Not found" }
-```
-
-**Example:**
-```bash
-curl http://localhost:3000/exercises/507f1f77bcf86cd799439011
-```
-
----
-
-### POST /exercises
-Create a new exercise record.
-
-**Status Code:**
-- `201 Created` - Exercise created successfully
-- `400 Bad Request` - Invalid input
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
+#### POST /auth/register
+Create an account. Returns a JWT immediately (no separate login step needed).
 
 **Request Body:**
 ```json
-{
-  "name": "Pushups",
-  "reps": 20,
-  "weight": 0,
-  "unit": "lbs",
-  "date": "2026-08-12"
-}
+{ "email": "user@example.com", "username": "myusername", "password": "at-least-6-chars" }
 ```
 
-**Validation Rules:**
-- `name` (string, required): Non-empty exercise name
-- `reps` (integer, required): Positive number > 0
-- `weight` (integer, required): Non-negative number >= 0
-- `unit` (string, required): One of: `kgs`, `lbs`, `miles`
-- `date` (string, required): Valid ISO 8601 date (YYYY-MM-DD)
+**Status Code:** `201 Created` · `400 Bad Request` (invalid input, email/username already taken)
 
 **Response (Success):**
 ```json
 {
-  "_id": "507f1f77bcf86cd799439013",
-  "name": "Pushups",
-  "reps": 20,
-  "weight": 0,
-  "unit": "lbs",
-  "date": "2026-08-12"
+  "message": "User registered successfully",
+  "token": "eyJhbGciOi...",
+  "user": { "id": "...", "email": "...", "username": "...", "role": "user" }
 }
 ```
 
-**Response (Invalid Input):**
-```json
-{ "Error": "Invalid request" }
+#### POST /auth/login
+**Request Body:** `{ "email": "...", "password": "..." }`
+
+**Status Code:** `200 OK` · `401 Unauthorized` (wrong credentials or deactivated account)
+
+**Response (Success):** same shape as register, with `"message": "Login successful"`.
+
+#### GET /auth/me
+Validates the current token. **Status Code:** `200 OK` · `401 Unauthorized`
+
+**Example:**
+```bash
+curl http://localhost:3000/auth/me -H "Authorization: Bearer <token>"
 ```
+
+---
+
+### Exercises
+
+All exercise endpoints require `Authorization: Bearer <token>` and only ever operate on the requesting user's own exercises — one user can never read, update, or delete another user's exercise (an id that exists but belongs to someone else returns `404`, the same as an id that doesn't exist at all).
+
+#### GET /exercises
+Retrieve the authenticated user's exercises. **Status Code:** `200 OK`
+
+```json
+[
+  { "_id": "507f...11", "name": "Pushups", "reps": 20, "weight": 0, "unit": "lbs", "date": "2026-08-12T00:00:00.000Z", "userId": "507f...ab" }
+]
+```
+
+#### GET /exercises/:id
+**Status Code:** `200 OK` · `404 Not Found`
+
+#### POST /exercises
+**Request Body:**
+```json
+{ "name": "Pushups", "reps": 20, "weight": 0, "unit": "lbs", "date": "2026-08-12" }
+```
+
+**Validation Rules:**
+- `name` (string, required): 1–255 characters (trimmed)
+- `reps` (integer, required): positive, > 0
+- `weight` (integer, required): non-negative, >= 0
+- `unit` (string, required): one of `kgs`, `lbs`, `miles`
+- `date` (string, required): valid ISO 8601 date
+
+**Status Code:** `201 Created` · `400 Bad Request` (see **Validation Errors** below)
 
 **Example:**
 ```bash
 curl -X POST http://localhost:3000/exercises \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Squats",
-    "reps": 15,
-    "weight": 135,
-    "unit": "lbs",
-    "date": "2026-08-12"
-  }'
+  -H "Authorization: Bearer <token>" \
+  -d '{ "name": "Squats", "reps": 15, "weight": 135, "unit": "lbs", "date": "2026-08-12" }'
 ```
+
+#### PUT /exercises/:id
+Same validation rules and request body as POST. **Status Code:** `200 OK` · `400 Bad Request` · `404 Not Found`
+
+#### DELETE /exercises/:id
+**Status Code:** `204 No Content` (empty body) · `404 Not Found`
 
 ---
 
-### PUT /exercises/:id
-Update an existing exercise record.
+### User Management (admin only)
 
-**Parameters:**
-- `id` (string, required): MongoDB ObjectId of the exercise
+Every route below additionally requires the caller's token to have `role: "admin"` (`403 Forbidden` otherwise). An admin can never change their own role/status or delete their own account (`400 Bad Request`), to avoid locking out the last admin.
 
-**Status Code:**
-- `200 OK` - Exercise updated successfully
-- `400 Bad Request` - Invalid input
-- `404 Not Found` - Exercise not found
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:** (Same validation rules as POST)
-```json
-{
-  "name": "Squats",
-  "reps": 15,
-  "weight": 185,
-  "unit": "lbs",
-  "date": "2026-08-12"
-}
-```
-
-**Response (Success):**
-```json
-{
-  "_id": "507f1f77bcf86cd799439011",
-  "name": "Squats",
-  "reps": 15,
-  "weight": 185,
-  "unit": "lbs",
-  "date": "2026-08-12"
-}
-```
-
-**Response (Not Found):**
-```json
-{ "Error": "Not found" }
-```
-
-**Response (Invalid Input):**
-```json
-{ "Error": "Invalid request" }
-```
-
-**Example:**
-```bash
-curl -X PUT http://localhost:3000/exercises/507f1f77bcf86cd799439011 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Squats",
-    "reps": 15,
-    "weight": 185,
-    "unit": "lbs",
-    "date": "2026-08-12"
-  }'
-```
+| Method & Path | Purpose | Status Codes |
+|---|---|---|
+| `GET /users` | List all users (password field excluded) | `200` |
+| `GET /users/:id` | Get one user | `200` · `404` |
+| `PUT /users/:id/role` | Body: `{ "role": "user" \| "admin" }` | `200` · `400` · `404` |
+| `PUT /users/:id/status` | Body: `{ "isActive": boolean }` — deactivated users can't log in | `200` · `400` · `404` |
+| `DELETE /users/:id` | | `204` · `400` · `404` |
 
 ---
 
-### DELETE /exercises/:id
-Delete an exercise record.
+### Observability
 
-**Parameters:**
-- `id` (string, required): MongoDB ObjectId of the exercise
+#### GET /health
+Reports database connectivity, for container/orchestrator health checks. See [HEALTH_CHECKS.md](./HEALTH_CHECKS.md) for the full response shape and integration details.
 
-**Status Code:**
-- `204 No Content` - Exercise deleted successfully
-- `404 Not Found` - Exercise not found
+**Status Code:** `200 OK` (healthy) · `503 Service Unavailable` (degraded)
 
-**Response (Success):**
-No response body (204 No Content)
-
-**Response (Not Found):**
 ```json
-{ "Error": "Not found" }
+{ "status": "healthy", "timestamp": "...", "checks": { "database": { "status": "healthy", "message": "Connected" } }, "responseTime": 2 }
 ```
 
-**Example:**
+#### GET /metrics
+Request counts, error rates, and response-time stats. Defaults to Prometheus text format (what `prometheus.yml` scrapes); pass `?format=json` for the same data as JSON.
+
 ```bash
-curl -X DELETE http://localhost:3000/exercises/507f1f77bcf86cd799439011
+curl http://localhost:3000/metrics
+curl http://localhost:3000/metrics?format=json
 ```
+
+#### GET /config/units
+Returns the valid `unit` values for exercises: `{ "units": ["kgs", "lbs", "miles"] }`.
 
 ---
 
 ## Error Handling
 
-### Common Error Responses
+### Validation Errors (400 Bad Request)
 
-**Invalid Request (400 Bad Request):**
+`POST`/`PUT /exercises` and the `/auth/*` and `/users/*` validation failures return a consistent shape naming every invalid field:
+
 ```json
-{ "Error": "Invalid request" }
+{
+  "Error": "Validation failed",
+  "details": [
+    { "field": "reps", "message": "Reps must be a positive integer" }
+  ]
+}
 ```
-Returned when POST/PUT receives invalid or missing fields.
 
-**Not Found (404 Not Found):**
+### Not Found (404 Not Found)
 ```json
 { "Error": "Not found" }
 ```
-Returned when GET/PUT/DELETE references a non-existent exercise.
+Returned when a route references an exercise or user that doesn't exist — or, for exercises, exists but belongs to a different user.
+
+### Rate Limiting (429 Too Many Requests)
+
+| Scope | Limit |
+|---|---|
+| `/auth/register`, `/auth/login` | 5 requests / 15 minutes |
+| `/exercises` (POST/PUT) | 200 requests / hour |
+| Everything else | 100 requests / 15 minutes |
+
+All limits are per-IP and disabled when `NODE_ENV=development`.
 
 ---
 
@@ -563,16 +469,19 @@ Returned when GET/PUT/DELETE references a non-existent exercise.
 
 ### Backend (.env file)
 
-Create `backend-rest/.env`:
+Create `backend-rest/.env`. `PORT`, `MONGODB_CONNECT_STRING`, and `JWT_SECRET` are required — the server refuses to start without them:
 ```
 PORT=3000
 MONGODB_CONNECT_STRING=mongodb://[username]:[password]@host:port/database
+JWT_SECRET=your_jwt_secret_key_here
 ```
 
 **For Docker:** Use MongoDB connection string with service name:
 ```
 MONGODB_CONNECT_STRING=mongodb://username:password@mongodb:27017/exercises
 ```
+
+See [ENVIRONMENT.md](./ENVIRONMENT.md) for the full list of optional variables (CORS, logging, Jaeger).
 
 ### Frontend (.env file)
 
@@ -628,14 +537,14 @@ docker-compose up --build
 
 ## Features
 
-- Create, view, edit, and delete exercise entries
-- REST API for exercise data
+- Create, view, edit, and delete exercise entries, scoped to your own account
+- JWT authentication, plus admin-only user management (roles, activation, deletion)
+- REST API for exercise data, rate-limited per IP
 - React-based user interface
 - Full Docker containerization for production deployment
-- Health monitoring endpoints
+- Health monitoring, Prometheus metrics, and Jaeger distributed tracing
 - CORS-enabled for cross-origin requests
 
-
-## Screanshots
+## Screenshots
 
 ![exercise app](./frontend-react/public/Front_End.png)
