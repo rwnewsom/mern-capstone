@@ -85,7 +85,7 @@ Keep to 72 chars per line for readability.
 **Test Commands:**
 
 ```bash
-# Backend (15 tests)
+# Backend (165 tests)
 cd backend-rest
 npm test
 

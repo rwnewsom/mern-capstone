@@ -18,16 +18,30 @@ This document provides context about the project structure, conventions, and dev
 ```
 newsomro-a9/
 ├── backend-rest/              # Express API server
-│   ├── exercise_controller.mjs # Route handlers and validation
-│   ├── exercise_model.mjs      # MongoDB models and CRUD operations
+│   ├── exercise_controller.mjs # App setup, middleware wiring, /exercises + /health/metrics/config routes
+│   ├── exercise_model.mjs      # Exercise schema and CRUD operations
+│   ├── auth_controller.mjs     # register/login (bcrypt + JWT)
+│   ├── auth_middleware.mjs     # verifyToken, verifyAdmin
+│   ├── auth_routes.mjs         # /auth/* routes
+│   ├── user_model.mjs          # User schema
+│   ├── user_controller.mjs     # Admin user-management handlers
+│   ├── user_routes.mjs         # /users/* routes (admin only)
+│   ├── sanitizer.mjs           # express-validator chain for exercise fields
+│   ├── rate_limiter.mjs        # express-rate-limit configs (global/auth/exercise)
+│   ├── config.mjs              # Env var loading + startup validation
+│   ├── constants.mjs           # Shared constants (valid units, error shapes)
 │   ├── logger.mjs              # Structured logging utility
+│   ├── health_check.mjs        # GET /health
+│   ├── metrics.mjs / prometheus_metrics.mjs  # In-memory metrics + Prometheus text format
+│   ├── tracing.mjs             # OpenTelemetry -> Jaeger (OTLP/HTTP)
+│   ├── db_instrumentation.mjs  # Wraps DB calls in trace spans
+│   ├── graceful_shutdown.mjs   # SIGTERM/SIGINT drain + tracer/DB shutdown
 │   ├── Dockerfile              # Production container for backend
 │   ├── package.json
 │   ├── .env.example            # Environment template (commit to repo)
 │   ├── .env                    # Actual env file (in .gitignore)
 │   ├── .dockerignore
-│   └── test/
-│       └── exercise_controller.test.mjs  # Unit and integration tests
+│   └── test/                   # node:test suite (165 tests) + test/helpers/
 │
 ├── frontend-react/            # React SPA
 │   ├── src/
@@ -63,9 +77,10 @@ newsomro-a9/
 ### Backend Architecture
 
 **Validation Strategy:**
-- Input validation happens in `exercise_controller.mjs` before database operations
-- `validateExerciseInput()` is a pure function that can be tested independently
-- Validation covers: type checking, field presence, value ranges, enum constraints
+- Exercise field validation is an `express-validator` chain in `sanitizer.mjs` (`validateExerciseFields` + `validationErrorHandler`), applied as middleware before `POST`/`PUT /exercises` reach the route handler
+- Covers: type checking, field presence/length, value ranges, enum constraints
+- Deliberately does *not* use `express-validator`'s `.escape()` — see the comment in `sanitizer.mjs`: it HTML-entity-encodes the value before it's persisted, which corrupts stored data for every consumer. Output encoding belongs at render time, not storage time.
+- Auth input (`auth_controller.mjs`'s `validateAuthInput`) is a separate plain-function validator, not part of this chain
 
 **Database Abstraction:**
 - `exercise_model.mjs` handles all database operations
@@ -127,14 +142,14 @@ newsomro-a9/
 ### Testing Strategy
 
 **Current Test Coverage:**
-- 15 unit/integration tests for endpoint validation and response codes
-- Tests are in `backend-rest/test/` using Node built-in test runner
-- No external test framework dependencies (uses only node:test and node:assert)
+- 165 tests in `backend-rest/test/` using Node's built-in test runner
+- No external test framework dependencies (uses only `node:test` and `node:assert`)
 
 **Test Approach:**
-- Validation tests: Pure function testing of `validateExerciseInput()`
-- Endpoint simulation tests: Mock response objects to test status codes and response format
-- Not yet: Real database integration tests (would require test database container)
+- Pure-function tests: `validateAuthInput`, `sanitizer.mjs`'s validation chain (via `ValidationChain.run()`), middleware called directly with mock req/res (`auth_middleware.mjs`, `db_instrumentation.mjs`, etc.)
+- Real HTTP integration tests (`auth_exercise_integration.test.mjs`, `user_routes.test.mjs`): spin up the real Express app on an ephemeral port (`app.listen(0)`) and drive it with real `fetch()` requests through the real middleware chain — auth, ownership filtering, admin authorization, and validation are all exercised for real, not re-simulated. Only the Mongoose model layer is stubbed, via `test/helpers/fakeCollection.mjs` (an in-memory stand-in wired in with `node:test`'s built-in `mock.method()`) — no test database, no new dependency
+- Not yet: tests against a real (even in-memory) MongoDB — the Mongoose layer above is faked, so query-semantics bugs in a real deployment wouldn't be caught here
+- **Caution when adding a "test" file:** earlier versions of `auth_exercise_integration.test.mjs` and `user_routes.test.mjs` asserted only against literals the test itself constructed (e.g. `const res = {statusCode: 401}; assert.equal(res.statusCode, 401)`) — passing, but exercising zero real code. If a test doesn't call into `app`/a real exported function, it isn't testing anything.
 
 ## Conventions & Practices
 
@@ -152,7 +167,7 @@ newsomro-a9/
 - No docstrings or multi-line comment blocks
 
 **Naming:**
-- Descriptive names: `validateExerciseInput`, `fetchWithTimeout`
+- Descriptive names: `validateExerciseFields`, `fetchWithTimeout`
 - Abbreviations only for universally understood terms: id, API, HTTP
 - Avoid generic names: use `exercise` not `item`, `record`, `data`
 
@@ -199,7 +214,7 @@ newsomro-a9/
 - Environment variables passed via ECS task definition
 - MongoDB connection string from AWS Secrets Manager or RDS
 - Health checks configured in ECS task definition
-- Graceful shutdown not yet implemented (TODO: Phase 5)
+- Graceful shutdown implemented (`graceful_shutdown.mjs`): drains in-flight requests, flushes tracer spans, and closes the DB connection on SIGTERM/SIGINT, bounded by a 30s timeout — see [GRACEFUL_SHUTDOWN.md](./GRACEFUL_SHUTDOWN.md)
 
 ## Development Workflow - Branch Protection & CI/CD
 
@@ -216,7 +231,7 @@ newsomro-a9/
 ### GitHub Actions CI/CD Pipeline
 
 Every pull request automatically runs:
-1. **Backend tests** (15 tests) - Must pass
+1. **Backend tests** (165 tests) - Must pass
 2. **Frontend tests** (29 tests) - Must pass
 3. **All Tests Passed check** - Blocks merge if any fail
 
@@ -295,7 +310,7 @@ node --test --watch
 1. **Code changes:** Edit files, Docker auto-reloads changes (if using volumes)
 2. **Dependencies:** Add with `npm install`, rebuild Docker images if using containers
 3. **Database schema:** Modify `exercise_model.mjs`, restart server
-4. **Tests:** Add to `backend-rest/test/exercise_controller.test.mjs`, run `npm test`
+4. **Tests:** Add a `*.test.mjs` file under `backend-rest/test/`, run `npm test`
 5. **API endpoints:** Add to `exercise_controller.mjs`, test before committing
 
 ### Git Workflow
@@ -332,32 +347,36 @@ Relates to: (optional reference)
 
 ## Known Limitations & Future Work
 
-### Not Yet Implemented (Phase 4+)
+### Not Yet Implemented
 
-- Real database integration tests (would need test MongoDB container)
-- Frontend component tests (Vitest/Jest)
-- Input sanitization (escape special characters)
-- Rate limiting (express-rate-limit)
-- Graceful shutdown on SIGTERM
-- API versioning (/v1/exercises)
-- Frontend tests (smoke tests, component tests)
+- Real database integration tests (current tests stub the Mongoose layer — see Testing Strategy above)
+- API versioning (`/v1/exercises`)
+- Frontend tracing/Core Web Vitals (Phase 8.4)
+- Grafana dashboards on top of the existing Prometheus metrics (Phase 8.5)
+- EKS/Kubernetes deployment (Phase 9 — planning doc only, not started; see `phase_9_eks_deployment.md`, gitignored)
 
 ### Tested Scenarios
 
 - ✅ CRUD validation (all fields required, correct types)
-- ✅ Endpoint response codes (201, 200, 204, 400, 404)
-- ✅ Error responses (consistent { Error: "message" } format)
+- ✅ Endpoint response codes (201, 200, 204, 400, 404, 429)
+- ✅ Error responses (consistent `{ Error: "message" }`, and `{ Error, details: [...] }` for field-level validation failures)
+- ✅ JWT auth (register/login/verify, expired/invalid/missing tokens)
+- ✅ Exercise ownership isolation (one user can never read/update/delete another's exercise)
+- ✅ Admin authorization (`verifyAdmin`, self-lockout guards on role/status/delete)
+- ✅ Rate limiting (per-route limits, dev-mode skip)
 - ✅ Docker containerization
 - ✅ Health checks
 - ✅ Structured logging
 - ✅ Request timeouts
 - ✅ Error boundaries
 - ✅ Toast notifications
+- ✅ Graceful shutdown (request draining, tracer flush, DB close)
+- ✅ Distributed tracing (verified end-to-end against a live Jaeger container: HTTP spans, nested DB spans, correct parent/child linkage)
+- ✅ Frontend component tests (Vitest, 29 tests)
 
 ### Not Tested Yet
 
-- Real MongoDB operations (integration tests)
-- Frontend component rendering
+- Real MongoDB query semantics (current tests use an in-memory fake, not a real/in-memory Mongo)
 - Race conditions in concurrent requests
 - Memory leaks under sustained load
 - Cross-browser compatibility
@@ -436,7 +455,7 @@ Key metrics to watch:
 
 1. Create validation function if needed
 2. Add route handler to `exercise_controller.mjs`
-3. Add test to `backend-rest/test/exercise_controller.test.mjs`
+3. Add a `*.test.mjs` file under `backend-rest/test/` covering it
 4. Document in README.md API section
 5. Test locally before committing
 
@@ -463,5 +482,5 @@ Key metrics to watch:
 
 ---
 
-**Last Updated:** 2026-08-13  
-**Project Status:** Phase 5 Complete - Ready for Phase 6 (Authentication & Authorization) or Production Deployment
+**Last Updated:** 2026-08-28  
+**Project Status:** Phases 1–7 (CRUD, auth, health checks, rate limiting, graceful shutdown) and Phase 8.1–8.3 (backend tracing, metrics, DB instrumentation) complete. Ready for Phase 8.4+ (frontend tracing, Grafana dashboards) or Phase 9 (EKS deployment).
