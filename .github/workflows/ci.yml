@@ -58,6 +58,11 @@ jobs:
       - name: Run backend tests
         working-directory: backend-rest
         run: npm test
+        env:
+          # No .env file is checked out in CI (it's gitignored). The test
+          # suite doesn't hit a real database, but some tests sign/verify
+          # real JWTs end-to-end and need a stable secret to do that with.
+          JWT_SECRET: test-secret-key-for-ci
 
   frontend-lint:
     name: Frontend Linting

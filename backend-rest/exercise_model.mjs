@@ -91,4 +91,9 @@ export {
   retrieveExerciseById,
   updateExerciseById,
   deleteExerciseById,
+  // Exported so tests can stub the Mongoose layer (Exercise.find/save/etc.)
+  // directly rather than mocking createExercise/retrieveExercises/etc.
+  // themselves, which is not possible: those are `import * as` namespace
+  // bindings, and ESM namespace objects are non-configurable.
+  Exercise,
 };

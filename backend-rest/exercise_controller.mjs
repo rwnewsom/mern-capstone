@@ -204,3 +204,7 @@ app.delete(
     return res.status(204).send();
   })
 );
+
+// Exported so tests can drive the real app over HTTP (app.listen(0) + fetch)
+// instead of re-simulating route behavior by hand.
+export { app };
