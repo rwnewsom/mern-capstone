@@ -30,6 +30,10 @@ export const updateUserRole = asyncHandler(async (req, res) => {
     return res.status(400).json({ Error: 'Role must be either "user" or "admin"' });
   }
 
+  if (id === req.userId) {
+    return res.status(400).json({ Error: 'Cannot change your own role' });
+  }
+
   const user = await traceDbOperation('findByIdAndUpdate', 'users', 'update', async () => {
     return User.findByIdAndUpdate(id, { role }, { new: true });
   });
@@ -48,6 +52,10 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
     return res.status(400).json({ Error: 'isActive must be a boolean' });
   }
 
+  if (id === req.userId) {
+    return res.status(400).json({ Error: 'Cannot change your own status' });
+  }
+
   const user = await traceDbOperation('findByIdAndUpdate', 'users', 'update', async () => {
     return User.findByIdAndUpdate(id, { isActive }, { new: true });
   });
@@ -60,6 +68,10 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
 
 export const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
+  if (id === req.userId) {
+    return res.status(400).json({ Error: 'Cannot delete your own account' });
+  }
 
   const user = await traceDbOperation('findByIdAndDelete', 'users', 'delete', async () => {
     return User.findByIdAndDelete(id);
