@@ -32,9 +32,11 @@ When a shutdown signal is received:
    ↓
 3. Track active requests with timeout (30 seconds)
    ↓
-4. Close MongoDB connection
+4. Flush buffered trace spans (bounded to 5 seconds; skipped if tracing never initialized)
    ↓
-5. Exit with status code (0=success, 1=failure)
+5. Close MongoDB connection
+   ↓
+6. Exit with status code (0=success, 1=failure)
 ```
 
 ### Request Tracking

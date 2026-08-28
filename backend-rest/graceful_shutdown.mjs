@@ -1,6 +1,7 @@
 import { setTimeout, setInterval, clearTimeout, clearInterval } from 'node:timers';
 import mongoose from 'mongoose';
 import { logger } from './logger.mjs';
+import { shutdownTracing } from './tracing.mjs';
 
 const SHUTDOWN_TIMEOUT = 30000; // 30 seconds
 
@@ -39,6 +40,7 @@ const setupGracefulShutdown = (server) => {
     // Wait for in-flight requests with timeout
     const shutdownTimeout = setTimeout(async () => {
       logger.warn(`Shutdown timeout after ${SHUTDOWN_TIMEOUT}ms, forcing exit`);
+      await shutdownTracing();
       await closeDatabase();
       process.exit(1);
     }, SHUTDOWN_TIMEOUT);
@@ -49,6 +51,7 @@ const setupGracefulShutdown = (server) => {
         clearInterval(waitForRequests);
         clearTimeout(shutdownTimeout);
         logger.info('All requests completed');
+        await shutdownTracing();
         await closeDatabase();
         process.exit(0);
       } else {
