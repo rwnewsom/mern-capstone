@@ -205,7 +205,8 @@ app.put(
   validationErrorHandler,
   asyncHandler(async (req, res) => {
     const exerciseId = req.params.id;
-    const updates = req.body;
+    const { name, reps, weight, unit, date } = req.body;
+    const updates = { name, reps, weight, unit, date };
     const result = await exercises.updateExerciseById(exerciseId, req.userId, updates);
 
     if (result.matchedCount === 0) {
