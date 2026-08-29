@@ -65,7 +65,7 @@ export default function AuthPage({ isRegister = false }) {
 
       const endpoint = isSignUp ? '/auth/register' : '/auth/login';
       const body = isSignUp ? { email, username, password } : { email, password };
-      const response = await fetchWithTimeout(`http://localhost:3000${endpoint}`, {
+      const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
