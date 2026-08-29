@@ -485,14 +485,14 @@ See [ENVIRONMENT.md](./ENVIRONMENT.md) for the full list of optional variables (
 
 ### Frontend (.env file)
 
-Create `frontend-react/.env`:
-```
-VITE_API_URL=http://localhost:3000
-```
+No `.env` file is needed for local dev or Docker — the frontend calls same-origin
+relative paths (`/exercises`, `/auth/login`, ...), which are proxied to the backend
+by Vite's dev server (`vite.config.js`) or Nginx (`nginx.conf`) respectively.
 
-**For Docker:** Use service name:
+`VITE_API_URL` is optional and only needed if the frontend and backend are deployed
+without a shared proxy (e.g. two separate hosts):
 ```
-VITE_API_URL=http://backend:3000
+VITE_API_URL=https://api.example.com
 ```
 
 ---

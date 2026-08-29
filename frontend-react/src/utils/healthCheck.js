@@ -1,12 +1,13 @@
+import { API_BASE_URL } from './api';
+
 const HEALTH_CHECK_TIMEOUT = 5000; // 5 seconds
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export const checkBackendHealth = async () => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
 
-    const response = await fetch(`${BACKEND_URL}/health`, {
+    const response = await fetch(`${API_BASE_URL}/health`, {
       method: 'GET',
       signal: controller.signal,
     });
@@ -51,7 +52,7 @@ export const getBackendMetrics = async (token) => {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${BACKEND_URL}/metrics`, {
+    const response = await fetch(`${API_BASE_URL}/metrics`, {
       method: 'GET',
       headers,
       signal: controller.signal,

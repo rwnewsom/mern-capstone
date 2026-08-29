@@ -70,13 +70,15 @@ services:
     restart: unless-stopped
 
   # React frontend
+  # No VITE_API_URL here: Vite inlines env vars at `npm run build` time (in
+  # the Dockerfile), not container runtime, so a docker-compose `environment:`
+  # entry for it would silently do nothing. The built app uses relative paths,
+  # proxied to the backend by nginx.conf, so no build-time API URL is needed.
   frontend:
     build:
       context: ./frontend-react
       dockerfile: Dockerfile
     container_name: exercise-tracker-ui
-    environment:
-      VITE_API_URL: http://localhost
     ports:
       - "80:80"
     depends_on:

@@ -1,5 +1,12 @@
 const DEFAULT_TIMEOUT = 15000; // 15 seconds
 
+// Empty by default: every call site passes a same-origin path (e.g.
+// '/exercises'), which the dev server (vite.config.js) or Nginx
+// (nginx.conf) proxies to the backend — no CORS, no per-environment
+// rebuild. Set VITE_API_URL only if the frontend and backend don't
+// share an origin/proxy (e.g. deployed to two separate hosts).
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -8,7 +15,7 @@ const getAuthHeader = () => {
   return {};
 };
 
-export const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TIMEOUT) => {
+export const fetchWithTimeout = async (path, options = {}, timeoutMs = DEFAULT_TIMEOUT) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -16,7 +23,7 @@ export const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TI
     const authHeader = getAuthHeader();
     const headers = { ...authHeader, ...options.headers };
 
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers,
       signal: controller.signal,
@@ -26,6 +33,8 @@ export const fetchWithTimeout = async (url, options = {}, timeoutMs = DEFAULT_TI
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userRole');
       window.location.href = '/login';
     }
 
