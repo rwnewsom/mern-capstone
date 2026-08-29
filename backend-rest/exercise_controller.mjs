@@ -20,7 +20,7 @@ import { formatPrometheusMetrics } from './prometheus_metrics.mjs';
 import { trackRequest, setupGracefulShutdown } from './graceful_shutdown.mjs';
 import { initTracing } from './tracing.mjs';
 import { initDbTracer } from './db_instrumentation.mjs';
-import { context, trace } from '@opentelemetry/api';
+import { context, propagation, trace } from '@opentelemetry/api';
 
 // Tracing initializes synchronously so this is settled before the request-span
 // middleware below decides whether to register itself. initTracing() degrades
@@ -38,7 +38,13 @@ app.use(trackRequest);
 
 if (tracer) {
   app.use((req, res, next) => {
-    const span = tracer.startSpan(`${req.method} ${req.path}`);
+    // If the request carries W3C trace-context headers (the frontend's
+    // fetchWithTimeout injects them — see src/utils/api.js), this request's
+    // span becomes a child of the frontend span that triggered it, instead
+    // of always starting a new root trace. Falls back to the current
+    // (empty) context if the headers are absent, same as before.
+    const parentContext = propagation.extract(context.active(), req.headers);
+    const span = tracer.startSpan(`${req.method} ${req.path}`, undefined, parentContext);
     span.setAttributes({
       'http.method': req.method,
       'http.url': req.url,
@@ -53,7 +59,7 @@ if (tracer) {
     // Activate the span in context so DB spans started later in this request
     // (traceDbOperation, via db_instrumentation.mjs) nest under it instead of
     // each becoming its own disconnected root trace.
-    context.with(trace.setSpan(context.active(), span), next);
+    context.with(trace.setSpan(parentContext, span), next);
   });
 }
 

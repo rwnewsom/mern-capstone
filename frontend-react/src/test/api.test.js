@@ -1,7 +1,25 @@
-import { describe, it, expect } from 'vitest';
-import { handleApiError } from '../utils/api';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { handleApiError, fetchWithTimeout } from '../utils/api';
 
 describe('API Utilities', () => {
+  describe('fetchWithTimeout', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('injects a W3C traceparent header into every request', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await fetchWithTimeout('/exercises');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [, requestInit] = fetchMock.mock.calls[0];
+      // 00-<32 hex trace id>-<16 hex span id>-<2 hex flags>
+      expect(requestInit.headers.traceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/);
+    });
+  });
+
   describe('handleApiError', () => {
     it('handles network failure errors', () => {
       const error = new TypeError('Failed to fetch');
