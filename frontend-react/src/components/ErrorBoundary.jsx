@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { initTracing } from '../utils/tracing';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -12,6 +13,18 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+
+    const tracer = initTracing();
+    const span = tracer?.startSpan('error-boundary');
+    if (span) {
+      span.recordException(error);
+      span.setAttributes({
+        'error.type': error.name,
+        'error.message': error.message,
+        'component.stack': errorInfo?.componentStack ?? '',
+      });
+      span.end();
+    }
   }
 
   render() {

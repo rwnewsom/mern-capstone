@@ -265,7 +265,7 @@ This project uses GitHub Actions to automatically run tests on every pull reques
 
 4. **GitHub Actions runs tests automatically**
    - Backend tests (165 tests)
-   - Frontend tests (29 tests)
+   - Frontend tests (34 tests)
    - Status shown in PR
 
 5. **Fix any failing tests**

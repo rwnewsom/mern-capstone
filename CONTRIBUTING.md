@@ -89,7 +89,7 @@ Keep to 72 chars per line for readability.
 cd backend-rest
 npm test
 
-# Frontend (29 tests)
+# Frontend (34 tests)
 cd frontend-react
 npm test
 

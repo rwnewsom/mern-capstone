@@ -55,7 +55,9 @@ newsomro-a9/
 │   │   │   ├── EditExercise.jsx
 │   │   │   └── RetrieveExercises.jsx
 │   │   ├── utils/
-│   │   │   └── api.js             # Fetch utilities with timeout/error handling
+│   │   │   ├── api.js             # Fetch utilities with timeout/error handling; also creates a
+│   │   │   │                      #   trace span per request (see tracing.js)
+│   │   │   └── tracing.js         # OpenTelemetry -> Jaeger (via a same-origin proxy; see vite.config.js/nginx.conf)
 │   │   └── index.css
 │   ├── vite.config.js          # Build tool config
 │   ├── Dockerfile              # Production container (Node build + Nginx)
@@ -112,9 +114,10 @@ newsomro-a9/
 
 **API Communication:**
 - `api.js` provides two utilities:
-  - `fetchWithTimeout()`: AbortController-based fetch with configurable timeout (default 15s)
+  - `fetchWithTimeout()`: AbortController-based fetch with configurable timeout (default 15s); also creates a trace span per request and injects a W3C `traceparent` header so it links as a child of the backend's own HTTP span (`exercise_controller.mjs`) in Jaeger
   - `handleApiError()`: Converts errors to user-friendly messages
 - All pages use these utilities instead of raw fetch()
+- Every path a request needs (`/exercises`, `/auth`, `/users`, `/metrics`, `/config`, and `/v1/traces` for trace export) must be proxied in **both** `vite.config.js` (dev) and `nginx.conf` (Docker/prod) — a path missing from either 404s or falls through to the SPA's `index.html` instead of reaching its target
 - Toast notifications provide immediate user feedback
 
 **State Management:**
@@ -232,7 +235,7 @@ newsomro-a9/
 
 Every pull request automatically runs:
 1. **Backend tests** (165 tests) - Must pass
-2. **Frontend tests** (29 tests) - Must pass
+2. **Frontend tests** (34 tests) - Must pass
 3. **All Tests Passed check** - Blocks merge if any fail
 
 ### Feature Branch Workflow
@@ -351,8 +354,8 @@ Relates to: (optional reference)
 
 - Real database integration tests (current tests stub the Mongoose layer — see Testing Strategy above)
 - API versioning (`/v1/exercises`)
-- Frontend tracing/Core Web Vitals (Phase 8.4)
-- Grafana dashboards on top of the existing Prometheus metrics (Phase 8.5)
+- Core Web Vitals collection (Phase 8.5)
+- Grafana dashboards on top of the existing Prometheus metrics (Phase 8.6)
 - EKS/Kubernetes deployment (Phase 9 — planning doc only, not started; see `phase_9_eks_deployment.md`, gitignored)
 
 ### Tested Scenarios
@@ -371,8 +374,9 @@ Relates to: (optional reference)
 - ✅ Error boundaries
 - ✅ Toast notifications
 - ✅ Graceful shutdown (request draining, tracer flush, DB close)
-- ✅ Distributed tracing (verified end-to-end against a live Jaeger container: HTTP spans, nested DB spans, correct parent/child linkage)
-- ✅ Frontend component tests (Vitest, 29 tests)
+- ✅ Distributed tracing, backend-only (verified end-to-end against a live Jaeger container: HTTP spans, nested DB spans, correct parent/child linkage)
+- ✅ Distributed tracing, frontend-to-backend (verified end-to-end: a browser `fetch` span, the backend's `POST /exercises` span, and its `db.exercises.insert` span all appear as one trace with correct parent/child references — confirmed via Jaeger's API, not just the UI. Also verified graceful degradation: stopping Jaeger mid-session causes a background console error only, no user-visible impact)
+- ✅ Frontend component tests (Vitest, 34 tests)
 
 ### Not Tested Yet
 
@@ -483,4 +487,4 @@ Key metrics to watch:
 ---
 
 **Last Updated:** 2026-08-28  
-**Project Status:** Phases 1–7 (CRUD, auth, health checks, rate limiting, graceful shutdown) and Phase 8.1–8.3 (backend tracing, metrics, DB instrumentation) complete. Ready for Phase 8.4+ (frontend tracing, Grafana dashboards) or Phase 9 (EKS deployment).
+**Project Status:** Phases 1–7 (CRUD, auth, health checks, rate limiting, graceful shutdown) and Phase 8.1–8.4 (backend tracing/metrics/DB instrumentation, frontend tracing) complete. Ready for Phase 8.5+ (Core Web Vitals, Grafana dashboards) or Phase 9 (EKS deployment).
