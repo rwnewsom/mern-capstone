@@ -34,7 +34,7 @@ class ErrorBoundary extends Component {
           >
             Reload Page
           </button>
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.DEV && (
             <details style={{ marginTop: '20px', textAlign: 'left', whiteSpace: 'pre-wrap' }}>
               <summary>Error details (dev only)</summary>
               <p>{this.state.error?.toString()}</p>

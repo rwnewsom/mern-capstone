@@ -20,7 +20,13 @@ export default function AdminPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUsers(response);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.Error || 'Unable to load users.');
+      }
+
+      setUsers(data);
     } catch (err) {
       const message = handleApiError(err);
       setError(message);
@@ -46,8 +52,13 @@ export default function AdminPage() {
         },
         body: JSON.stringify({ role: newRole }),
       });
+      const data = await response.json();
 
-      setUsers(users.map((u) => (u._id === userId ? response : u)));
+      if (!response.ok) {
+        throw new Error(data?.Error || 'Unable to update role.');
+      }
+
+      setUsers(users.map((u) => (u._id === userId ? data : u)));
       setToast({
         type: 'success',
         message: `User role updated to ${newRole}`,
@@ -68,8 +79,13 @@ export default function AdminPage() {
         },
         body: JSON.stringify({ isActive: newStatus }),
       });
+      const data = await response.json();
 
-      setUsers(users.map((u) => (u._id === userId ? response : u)));
+      if (!response.ok) {
+        throw new Error(data?.Error || 'Unable to update status.');
+      }
+
+      setUsers(users.map((u) => (u._id === userId ? data : u)));
       setToast({
         type: 'success',
         message: `User ${newStatus ? 'activated' : 'deactivated'}`,
@@ -86,12 +102,17 @@ export default function AdminPage() {
     }
 
     try {
-      await fetchWithTimeout(`${window.location.origin}/users/${userId}`, {
+      const response = await fetchWithTimeout(`${window.location.origin}/users/${userId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.Error || 'Unable to delete user.');
+      }
 
       setUsers(users.filter((u) => u._id !== userId));
       setToast({ type: 'success', message: 'User deleted' });

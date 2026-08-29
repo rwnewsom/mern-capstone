@@ -1,4 +1,5 @@
 import { TiDelete } from 'react-icons/ti';
+import { fetchWithTimeout } from '../utils/api';
 
 function DeleteIcon({ exercise, setExercises }) {
   const deleteExercise = async () => {
@@ -8,7 +9,9 @@ function DeleteIcon({ exercise, setExercises }) {
       return;
     }
 
-    const response = await fetch(`/exercises/${exercise._id}`, {
+    // Was raw fetch() with no Authorization header — DELETE /exercises/:id
+    // requires auth, so every delete-from-list attempt got a 401.
+    const response = await fetchWithTimeout(`/exercises/${exercise._id}`, {
       method: 'DELETE',
     });
 
@@ -22,7 +25,22 @@ function DeleteIcon({ exercise, setExercises }) {
     }
   };
 
-  return <TiDelete onClick={deleteExercise} />;
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      deleteExercise();
+    }
+  };
+
+  return (
+    <TiDelete
+      onClick={deleteExercise}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`Delete ${exercise.name}`}
+    />
+  );
 }
 
 export default DeleteIcon;
