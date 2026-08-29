@@ -14,10 +14,21 @@ function ExerciseRow({ exercise, DeleteIcon, setExercises, onEdit }) {
       <td> {exercise.date?.split('T')[0]} </td>
       <td>
         {' '}
-        <FaEdit onClick={() => onEdit(exercise)} />
+        <FaEdit
+          onClick={() => onEdit(exercise)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onEdit(exercise);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={`Edit ${exercise.name}`}
+        />
       </td>
     </tr>
   );
 }
-//fixme look at movie page onedit logic
+
 export default ExerciseRow;

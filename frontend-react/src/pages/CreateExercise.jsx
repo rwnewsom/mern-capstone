@@ -6,12 +6,7 @@ import { VALID_UNITS } from '../constants';
 
 export const CreateExercisePage = () => {
   const today = new Date();
-  //console.log(today);
-  //YYYY-MM-DD need to pick out bits
-
   const todayFormatted = today.toISOString();
-  //console.log('*+*+*+*')
-  //console.log(todayFormatted)
 
   const [name, setName] = useState('');
   const [reps, setReps] = useState('');

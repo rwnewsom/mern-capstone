@@ -50,6 +50,14 @@ describe('ErrorBoundary Component', () => {
   });
 
   it('shows error details in development mode', () => {
+    // Regression test: the component used to check process.env.NODE_ENV,
+    // which Vite never defines in browser code — reading it there throws
+    // ReferenceError, crashing this exact fallback UI. import.meta.env.DEV
+    // is Vite's real equivalent, and (unlike process.env.NODE_ENV) it's
+    // actually true here under Vitest too, so this assertion isn't
+    // silently skipped the way the old guard was.
+    expect(import.meta.env.DEV).toBe(true);
+
     const testError = 'Development error details';
     const ThrowError = () => {
       throw new Error(testError);
@@ -61,8 +69,8 @@ describe('ErrorBoundary Component', () => {
       </ErrorBoundary>
     );
 
-    if (process.env.NODE_ENV === 'development') {
-      expect(screen.getByText(testError)).toBeInTheDocument();
-    }
+    // Rendered via error.toString(), which is "Error: <message>" —
+    // this exact mismatch was also hidden by the old skipped assertion.
+    expect(screen.getByText(`Error: ${testError}`)).toBeInTheDocument();
   });
 });
