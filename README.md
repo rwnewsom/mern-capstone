@@ -150,14 +150,14 @@ docker-compose logs -f mongodb    # MongoDB logs
 
 Once running, the app will be available at:
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| **Frontend** | http://localhost | React web application |
-| **Backend API** | http://localhost:3000 | REST API endpoints |
+| Service | URL                          | Purpose |
+|---------|------------------------------|---------|
+| **Frontend** | http://localhost:8080        | React web application |
+| **Backend API** | http://localhost:3000        | REST API endpoints |
 | **Backend Health** | http://localhost:3000/health | Health check |
-| **Jaeger UI** | http://localhost:16686 | Distributed tracing |
-| **Prometheus** | http://localhost:9090 | Metrics collection |
-| **MongoDB** | localhost:27017 | Database (internal only) |
+| **Jaeger UI** | http://localhost:16686       | Distributed tracing |
+| **Prometheus** | http://localhost:9090        | Metrics collection |
+| **MongoDB** | localhost:27017              | Database (internal only) |
 
 #### Rebuilding After Code Changes
 
@@ -216,7 +216,7 @@ The `-v` flag removes the MongoDB data volume.
 ```bash
 docker-compose up
 ```
-Visit `http://localhost` in your browser.
+Visit `http://localhost:8080` in your browser.
 
 ### Using Local Setup (Without Docker):
 
@@ -500,7 +500,7 @@ VITE_API_URL=https://api.example.com
 ## Troubleshooting
 
 ### Port Already in Use
-If ports 80, 3000, or 27017 are already in use:
+If ports 8080, 3000, or 27017 are already in use:
 
 **Option 1:** Stop the process using the port
 ```bash
