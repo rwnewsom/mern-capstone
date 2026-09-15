@@ -32,9 +32,9 @@ jobs:
         working-directory: backend-rest
         run: npm run format:check
 
-      - name: Check npm audit for critical vulnerabilities
+      - name: Check npm audit for moderate+ vulnerabilities
         working-directory: backend-rest
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=moderate
 
   backend-tests:
     name: Backend Tests
