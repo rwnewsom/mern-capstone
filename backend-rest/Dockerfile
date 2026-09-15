@@ -20,6 +20,12 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
+# Change user from root to a non-root user for security.
+# node:20-alpine already ships a "node" user (uid/gid 1000) for exactly
+# this purpose -- no need to create one (useradd isn't even available on
+# Alpine; adduser is the BusyBox equivalent, but the built-in user covers it).
+USER node
+
 # Health check - ensures container is running correctly
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"

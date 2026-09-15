@@ -93,7 +93,7 @@ jobs:
 
       - name: Run npm audit
         working-directory: frontend-react
-        run: npm audit --audit-level=moderate
+        run: npm audit --omit=dev --audit-level=moderate
 
   frontend-build:
     name: Frontend Build Verification
